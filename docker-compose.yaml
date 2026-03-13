@@ -1,0 +1,11 @@
+services:
+  app:
+    image: sir_5rm9:latest
+    environment:
+      - APP_ENV=production
+    secrets:
+      - DISCORD_TOKEN
+
+secrets:
+  DISCORD_TOKEN:
+    file: ./discord_token.txt

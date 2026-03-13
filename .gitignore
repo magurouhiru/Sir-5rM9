@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.egg-info/
+.ruff_cache/
+build/
+dist/
+*.pyc
+*.pyo
+*.pyd
+
+# インストールされたライブラリ
+venv/
+.venv/
+env/
+
+# 環境変数ファイル（セキュリティのため）
+.env
+discord_token.txt

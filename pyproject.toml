@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "Sir-5rM9"
+version = "0.1.0"
+description = "Discord の Bot"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [{ name = "magurouhiru" }]
+dependencies = ["discord.py>=2.7.1"]
+
+
+[project.urls]
+"Homepage" = "https://github.com/magurouhiru/Sir-5rM9"

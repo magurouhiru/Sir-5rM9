@@ -1,0 +1,97 @@
+// https://containers.dev/implementors/json_reference/
+{
+    // https://containers.dev/implementors/json_reference/#general-properties
+    "name": "Sir-5rM9-devcontainer",
+    // "forwardPorts": [],
+    // "portsAttributes": {},
+    // "otherPortsAttributes": {},
+    // "containerEnv": {},
+    // "remoteEnv": {},
+    "remoteUser": "vscode",
+    "containerUser": "vscode",
+    "updateRemoteUserUID": true,
+    // "userEnvProbe": "none",
+    // "overrideCommand ": false,
+    // "shutdownAction": "none",
+    // "init": false,
+    // "privileged": false,
+    // "capAdd": [],
+    // "securityOpt": [],
+    // "mounts": [],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "version": "latest",
+            "enableNonRootDocker": "true"
+        }
+    },
+    // "overrideFeatureInstallOrder": [],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "charliermarsh.ruff",
+                "ms-vscode.makefile-tools",
+                "tamasfe.even-better-toml",
+                "GitHub.vscode-github-actions"
+            ],
+            "settings": {
+                // プロジェクト直下の .venv を優先的に探す設定
+                "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+                "python.analysis.extraPaths": [
+                    "${workspaceFolder}/.venv/lib/python3.13/site-packages"
+                ],
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll": "explicit",
+                        "source.organizeImports": "explicit"
+                    },
+                    "editor.defaultFormatter": "charliermarsh.ruff"
+                },
+                "[toml": {
+                    "editor.defaultFormatter": "tamasfe.even-better-toml"
+                },
+                "[makefile]": {
+                    "editor.insertSpaces": false,
+                    "editor.defaultFormatter": "ms-vscode.makefile-tools"
+                },
+                "editor.formatOnSave": true
+            }
+        }
+    },
+    // https://containers.dev/implementors/json_reference/#image-specific
+    // "image": "mcr.microsoft.com/devcontainers/python:3.13-trixie",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".",
+        "args": {},
+        "options": [],
+        "target": "",
+        "cacheFrom": []
+    },
+    "appPort": [],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/app,type=bind,consistency=cached",
+    "workspaceFolder": "/home/vscode/app",
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined",
+        "--env-file",
+        ".env",
+        "--name",
+        "Sir-5rM9-devcontainer",
+        "--hostname",
+        "debian"
+    ],
+    // https://containers.dev/implementors/json_reference/#lifecycle-scripts
+    // "initializeCommand":[],
+    // "onCreateCommand": [],
+    // "updateContentCommand": [],
+    // "postCreateCommand": [],
+    "postStartCommand": {
+        // 権限問題を回避
+        "chown": "sudo chown -R vscode:vscode /home/vscode/app",
+        "install dependencies": "poetry install --no-root"
+    }
+    // "postAttachCommand": [],
+    // "waitFor": "updateContentCommand"
+}

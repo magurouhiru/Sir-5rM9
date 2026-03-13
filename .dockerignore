@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.egg-info/
+.ruff_cache/
+build/
+dist/
+*.pyc
+*.pyo
+*.pyd
+
+# インストールされたライブラリ
+venv/
+.venv/
+env/
+
+# 環境変数ファイル（セキュリティのため）
+.env
+discord_token.txt
+.env.example
+
+# 開発環境の設定ファイル
+.vscode/
+.devcontainer/
+.github/
+docs/
+.gitignore
+.dockerignore
+README.md
+LICENSE
+Makefile
+Dockerfile
+docker-compose.yaml
+start.bat
