@@ -10,9 +10,6 @@ from utils import get_env_variable, get_secret
 logger = logging.getLogger(__name__)
 
 
-
-
-
 def main():
     ENV = get_env_variable(APP_ENV)
 
