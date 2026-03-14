@@ -1,5 +1,5 @@
 .PHONY: docs
-VERSION := $(shell poetry version -s)
+VERSION := $(shell tomlq '.project.version' pyproject.toml | tr -d '"')
 
 docs:
 	pdoc -f -o ./docs sir_5rm9

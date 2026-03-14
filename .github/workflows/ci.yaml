@@ -17,8 +17,8 @@ jobs:
         python-version: '3.13'
     - name: Install dependencies
       run: |
-        pip3 install -e .
-        pip3 install ruff
+        pipx install uv
+        uv sync
     - name: Analysing the code with ruff
       run: |
         ruff check
