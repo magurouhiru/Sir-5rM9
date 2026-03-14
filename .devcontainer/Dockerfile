@@ -6,13 +6,14 @@ FROM mcr.microsoft.com/devcontainers/python:3.13-bookworm
 ARG USERNAME=vscode \
     WORKSPACE=/home/${USERNAME}/app
 
-RUN apt-get update && \
+RUN mkdir -p ${WORKSPACE} && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     yq
 
 # rootだとなんとなく嫌なので、vscodeユーザーに切り替える
 USER ${USERNAME}
-WORKDIR /home/${USERNAME}
+WORKDIR ${WORKSPACE}
 
 ENV APP_ENV=development
 
