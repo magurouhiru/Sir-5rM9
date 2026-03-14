@@ -18,12 +18,12 @@
     // "capAdd": [],
     // "securityOpt": [],
     // "mounts": [],
-    // "features": {
-    //     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-    //         "version": "latest",
-    //         "enableNonRootDocker": "true"
-    //     }
-    // },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "version": "latest",
+            "enableNonRootDocker": "true"
+        }
+    },
     // "overrideFeatureInstallOrder": [],
     "customizations": {
         "vscode": {

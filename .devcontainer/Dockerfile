@@ -8,8 +8,7 @@ ARG USERNAME=vscode \
 
 RUN mkdir -p ${WORKSPACE} && \
     apt-get update && \
-    apt-get install -y --no-install-recommends \
-    yq
+    apt-get upgrade -y
 
 # rootだとなんとなく嫌なので、vscodeユーザーに切り替える
 USER ${USERNAME}
