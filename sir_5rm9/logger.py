@@ -13,10 +13,10 @@ def log_command(func):
     """
 
     @functools.wraps(func)
-    async def wrapper(ctx: commands.Context):
+    async def wrapper(ctx: commands.Context, *args):
         logger.info(
-            f"{ctx.command} コマンド実行！ ユーザー: {ctx.author} チャンネル: {ctx.channel}"
+            f"{ctx.command}({', '.join(args)}) コマンド実行！ ユーザー: {ctx.author} チャンネル: {ctx.channel}"
         )
-        return await func(ctx)
+        return await func(ctx, *args)
 
     return wrapper
