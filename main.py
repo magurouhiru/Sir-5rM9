@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    i = 0
     ENV = get_env_variable(APP_ENV)
 
     if ENV == AppEnv.DEVELOPMENT.value:
