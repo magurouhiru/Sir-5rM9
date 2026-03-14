@@ -14,5 +14,4 @@ ENV APP_ENV=development \
     POETRY_VIRTUALENVS_IN_PROJECT=true
 
 RUN pip3 install --upgrade pip && \
-    pip3 install pdoc3 && \
     pipx install poetry==2.3.2
