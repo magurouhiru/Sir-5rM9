@@ -1,5 +1,5 @@
 .PHONY: docs
-VERSION := $(shell tomlq '.project.version' pyproject.toml | tr -d '"')
+VERSION := $(shell uv run tomlq '.project.version' pyproject.toml | tr -d '"')
 
 docs:
 	pdoc -f -o ./docs sir_5rm9
