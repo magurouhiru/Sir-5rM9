@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Discord の Bot"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["discord>=2.3.2"]
+dependencies = [
+    "discord>=2.3.2",
+    "ollama>=0.6.1",
+]
 
 [dependency-groups]
-dev = ["pdoc>=16.0.0", "ruff>=0.15.6"]
+dev = ["pdoc>=16.0.0", "ruff>=0.15.6", "tomlq>=0.1.0"]

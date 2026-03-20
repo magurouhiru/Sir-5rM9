@@ -63,28 +63,33 @@
     },
     // https://containers.dev/implementors/json_reference/#image-specific
     // "image": "mcr.microsoft.com/devcontainers/python:3.13-trixie",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": ".",
-        "args": {},
-        "options": [],
-        "target": "",
-        "cacheFrom": []
-    },
-    "appPort": [],
-    "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/app,type=bind,consistency=cached",
+    // "build": {
+    //     "dockerfile": "Dockerfile",
+    //     "context": ".",
+    //     "args": {},
+    //     "options": [],
+    //     "target": "",
+    //     "cacheFrom": []
+    // },
+    // "appPort": [],
+    // "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/app,type=bind,consistency=cached",
+    // "workspaceFolder": "/home/vscode/app",
+    // "runArgs": [
+    //     "--cap-add=SYS_PTRACE",
+    //     "--security-opt",
+    //     "seccomp=unconfined",
+    //     "--env-file",
+    //     ".env",
+    //     "--name",
+    //     "Sir-5rM9-devcontainer",
+    //     "--hostname",
+    //     "debian"
+    // ],
+    // https://containers.dev/implementors/json_reference/#compose-specific
+    "dockerComposeFile": "docker-compose.yaml",
+    "service": "bot",
+    "runServices": [],
     "workspaceFolder": "/home/vscode/app",
-    "runArgs": [
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined",
-        "--env-file",
-        ".env",
-        "--name",
-        "Sir-5rM9-devcontainer",
-        "--hostname",
-        "debian"
-    ],
     // https://containers.dev/implementors/json_reference/#lifecycle-scripts
     // "initializeCommand":[],
     // "onCreateCommand": [],
