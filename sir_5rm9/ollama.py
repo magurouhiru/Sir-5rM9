@@ -1,7 +1,9 @@
 import logging
 
+from discord import Message
 from discord.ext import commands
-from ollama import AsyncClient, Image, Message
+from ollama import AsyncClient, Image
+from ollama import Message as OllamaMessage
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,7 @@ def setup_ollama(bot: commands.Bot):
             logger.info(f"モデル {BASE_MODEL} をプルします...")
             await client.pull(model=BASE_MODEL)
             logger.info(f"モデル {BASE_MODEL} のプルが完了しました。")
+        models = {m.model for m in resp.models if m.model is not None}
         # 画像解析のモデルがなければcreate
         if ANALYZE_MODEL in models:
             logger.info(f"モデル {ANALYZE_MODEL} が見つかりました。")
@@ -77,23 +80,26 @@ def setup_ollama(bot: commands.Bot):
 
                 注意事項：
                 - 名前が読み取れない場合は空文字で、それ以外は0で出力してください。
+                - リンクは必ずすべて出力してください。クエリパラメータだけでなく。{}の値を埋め込む以外は変更せず。
                 """,
             )
             logger.info(f"モデル {ANALYZE_MODEL} の作成が完了しました。")
         logger.info("Ollama 準備完了!")
 
     @bot.event
-    async def on_message(ctx: commands.Context):
+    async def on_message(message: Message):
         # 自身のメッセージには反応しない。
-        if ctx.author == bot.user:
+        if message.author == bot.user:
             return
+        channel = message.channel
         # 指定のチャンネル以外では反応しない。
-        if ctx.channel.name == ANALYZE_TARGET_CHANNEL_NAME:
+        if channel.name == ANALYZE_TARGET_CHANNEL_NAME:
             return
 
+        logger.info("ark 画像解析開始")
         images = [
             await a.read()
-            for a in ctx.message.attachments
+            for a in message.attachments
             if a.content_type.startswith("image")
         ]
         if len(images) > 0:
@@ -102,7 +108,7 @@ def setup_ollama(bot: commands.Bot):
             images = None
         resp = await client.chat(
             model=ANALYZE_MODEL,
-            messages=[Message(role="user", images=images)],
+            messages=[OllamaMessage(role="user", images=images)],
             stream=False,
         )
-        await ctx.send(resp.message.content)
+        await channel.send(resp.message.content)
