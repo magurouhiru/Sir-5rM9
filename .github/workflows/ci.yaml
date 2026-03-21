@@ -31,5 +31,7 @@ jobs:
     # if: github.event_name == 'push'
     steps:
     - uses: actions/checkout@v4
+    - name: Install tomlq
+      run: sudo apt-get install -y tomlq
     - name: Build the Docker image
       run: make image
