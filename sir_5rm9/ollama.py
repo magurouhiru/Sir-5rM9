@@ -11,7 +11,7 @@ client = AsyncClient(
     host="http://ollama:11434", headers={"x-some-header": "some-value"}
 )
 BASE_MODEL = "qwen3-vl:latest"
-ANALYZE_MODEL = "ark-analyzer"
+ANALYZE_MODEL = "ark-analyzer:0.1.0"
 ANALYZE_TARGET_CHANNEL_NAME = "ARK-レベル算出"
 
 
@@ -38,7 +38,7 @@ def setup_ollama(bot: commands.Bot):
             logger.info(f"モデル {BASE_MODEL} をプルします...")
             await client.pull(model=BASE_MODEL)
             logger.info(f"モデル {BASE_MODEL} のプルが完了しました。")
-        models = {m.model for m in resp.models if m.model is not None}
+
         # 画像解析のモデルがなければcreate
         if ANALYZE_MODEL in models:
             logger.info(f"モデル {ANALYZE_MODEL} が見つかりました。")
