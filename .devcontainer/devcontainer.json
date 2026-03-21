@@ -98,7 +98,7 @@
     "postStartCommand": {
         // 権限問題を回避
         "chown": "sudo chown -R vscode:vscode ${containerWorkspaceFolder}",
-        "install dependencies": "uv sync"
+        "install dependencies": "uv sync --all-groups"
     }
     // "postAttachCommand": [],
     // "waitFor": "updateContentCommand"
