@@ -10,8 +10,11 @@ logger = logging.getLogger(__name__)
 client = AsyncClient(
     host="http://ollama:11434", headers={"x-some-header": "some-value"}
 )
-BASE_MODEL = "qwen3-vl:latest"
-ANALYZE_MODEL = "ark-analyzer:0.1.0"
+BASE_MODEL = "qwen3.5"
+# BASE_MODEL = "qwen3-vl"
+# BASE_MODEL = "gemma3"
+# BASE_MODEL = "moondream"
+ANALYZE_MODEL = f"ark-analyzer:{BASE_MODEL}"
 ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
@@ -81,6 +84,7 @@ def setup_ollama(bot: commands.Bot):
                 注意事項：
                 - 名前が読み取れない場合は空文字で、それ以外は0で出力してください。
                 - リンクは必ずすべて出力してください。クエリパラメータだけでなく。{}の値を埋め込む以外は変更せず。
+                - 名前の見間違いには注意してください。特に濁音半濁音(例:「パ」「バ」)には注意してください。
                 """,
             )
             logger.info(f"モデル {ANALYZE_MODEL} の作成が完了しました。")
@@ -98,6 +102,7 @@ def setup_ollama(bot: commands.Bot):
             await bot.process_commands(message)
             return
 
+        await message.channel.send("画像解析リクエストを受け取りました。")
         logger.info("画像解析リクエストを受け取りました。")
         logger.info("画像取得：開始")
         images = [
@@ -117,4 +122,7 @@ def setup_ollama(bot: commands.Bot):
             stream=False,
         )
         logger.info("画像解析：完了")
+        if resp.message.content is None or resp.message.content == "":
+            await message.channel.send("なんか失敗したっぽい")
+            return
         await message.channel.send(resp.message.content)
