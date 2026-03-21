@@ -13,7 +13,7 @@ ENV = os.getenv(APP_ENV)
 
 logger = logging.getLogger(__name__)
 
-reader = easyocr.Reader(["ja"])
+reader = easyocr.Reader(["ja"], gpu=False)
 
 
 def ocr_main(image_bytes: bytes):
@@ -98,7 +98,17 @@ def ocr_main(image_bytes: bytes):
 
 def read_status_text(image_list: list[NDArray], allowlist: str):
     return [
-        reader.readtext(image, allowlist=allowlist, mag_ratio=2) for image in image_list
+        reader.readtext(
+            image,
+            allowlist=allowlist,
+            mag_ratio=1.5,
+            contrast_ths=0.05,
+            adjust_contrast=0.9,
+            text_threshold=0.5,
+            low_text=0.2,
+            link_threshold=0.3,
+        )
+        for image in image_list
     ]
 
 
@@ -120,7 +130,7 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
     if ENV == AppEnv.DEVELOPMENT.value:
         logging.info(f"tmp_text_list_list: {tmp_text_list_list}")
     # 返す値のリスト
-    value_list = []
+    value_list: list[str] = []
     for i, tl in enumerate(text_list_list):
         if len(tl) == 0:
             # 酸素量がなくて余るときにここへ来る想定
@@ -129,20 +139,22 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
             # 近接攻撃力と/が1とかになってつながってるやつがここへ来る想定
             index = tmp_text_list_list[i][0].find("/")
             if index < 0:
-                # /がなければ1個目の.の右隣りまでを入れる
+                # /がなければ1個目のやつを入れる
                 # 多分近接攻撃力だけのはず
-                dot_index = tl[0].find(".")
-                if dot_index < 0:
-                    # どうしようもないのでそのまま入れる
-                    value_list.append(tl[0])
-                else:
-                    value_list.append(tl[0][: dot_index + 2])
+                value_list.append(tl[0])
             else:
                 # /の位置以降のやつを入れる
                 value_list.append(tl[0][index + 1 :])
         else:
             # うまく/で開業していたらここへ来る想定
             value_list.append(tl[1])
+
+    # /と%を削除
+    value_list: list[str] = [v.replace("/", "").replace("%", "") for v in value_list]
+    # .がなければ追加
+    value_list: list[str] = [
+        v if v.find(".") > 0 else v[:-1] + "." + v[-1:] for v in value_list
+    ]
 
     if len(value_list) == 7:
         # 全部のステータスが表示されているときにここへ来る想定
@@ -152,7 +164,7 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
             "o": value_list[2],
             "f": value_list[3],
             "w": value_list[4],
-            "m": value_list[5],
+            "m": float(value_list[5]) / 100,
             "t": value_list[6],
         }
     else:
@@ -163,6 +175,6 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
             "o": "0",
             "f": value_list[2],
             "w": value_list[3],
-            "m": value_list[4],
+            "m": float(value_list[4]) / 100,
             "t": value_list[5],
         }
