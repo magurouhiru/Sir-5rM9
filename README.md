@@ -3,9 +3,10 @@ Discord のbot です。
 便利な機能を提供します。
 
 ## 機能
-- [x] [挨拶機能](./docs/sir_5rm9/hello.md)
-- [x] [エコー](./docs/sir_5rm9/)
-- [x] ARKの個体値抽出&レベル算出サイトへのリンク作成
+- [x] [挨拶機能](./sir_5rm9/hello.py)
+- [x] [エコー](./sir_5rm9/echo.py)
+- [x] [ARK](./sir_5rm9/ark.py)
+  - [x] OCRで値取得&リンク作成
 
 ## メモ
 - Discord はセキュリティ的にユーザーの画面共有の映像を取得できないようになっている。

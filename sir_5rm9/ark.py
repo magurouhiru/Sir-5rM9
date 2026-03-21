@@ -2,22 +2,11 @@ import logging
 
 from discord import Message
 from discord.ext import commands
-from ollama import AsyncClient
 
 from .ocr import ocr_main
 
 logger = logging.getLogger(__name__)
 
-client = AsyncClient(
-    host="http://ollama:11434", headers={"x-some-header": "some-value"}
-)
-BASE_MODEL = "qwen3.5:2b"
-# BASE_MODEL = "qwen3.5:0.8b"
-# BASE_MODEL = "qwen3-vl:2b"
-# BASE_MODEL = "gemma3:latest"
-# BASE_MODEL = "glm-ocr:latest"
-# BASE_MODEL = "moondream:latest"
-ANALYZE_MODEL = f"ark-analyzer_{BASE_MODEL}"
 ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
