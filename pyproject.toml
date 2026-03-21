@@ -6,7 +6,10 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "discord>=2.3.2",
+    "easyocr>=1.7.2",
+    "numpy>=2.4.3",
     "ollama>=0.6.1",
+    "pillow>=12.1.1",
 ]
 
 [dependency-groups]

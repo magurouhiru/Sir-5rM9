@@ -16,3 +16,4 @@ env/
 # 環境変数ファイル（セキュリティのため）
 .env
 discord_token.txt
+ocr_dev
