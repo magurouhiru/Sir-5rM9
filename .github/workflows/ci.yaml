@@ -1,4 +1,4 @@
-name: ci
+name: cicd
 
 on:
   pull_request:
@@ -24,3 +24,12 @@ jobs:
       run: |
         uv run ruff check --output-format=github
         uv run ruff format --check --output-format=github
+
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: make image
