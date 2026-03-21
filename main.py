@@ -1,17 +1,18 @@
 import logging
+import os
 
 import discord
 from discord.ext import commands
 
 import sir_5rm9
-from config import APP_ENV, DISCORD_TOKEN, AppEnv
-from utils import get_env_variable, get_secret
+from config.config import APP_ENV, DISCORD_TOKEN, AppEnv
+from utils import get_secret
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    ENV = get_env_variable(APP_ENV)
+    ENV = os.getenv(APP_ENV)
 
     if ENV == AppEnv.DEVELOPMENT.value:
         logger.setLevel(logging.DEBUG)
