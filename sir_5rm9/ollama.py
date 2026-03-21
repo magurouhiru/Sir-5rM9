@@ -12,7 +12,7 @@ client = AsyncClient(
 )
 BASE_MODEL = "qwen3-vl:latest"
 ANALYZE_MODEL = "ark-analyzer:0.1.0"
-ANALYZE_TARGET_CHANNEL_NAME = "ARK-レベル算出"
+ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
 def setup_ollama(bot: commands.Bot):
@@ -89,14 +89,17 @@ def setup_ollama(bot: commands.Bot):
     @bot.event
     async def on_message(message: Message):
         # 自身のメッセージには反応しない。
-        if message.author == bot.user:
-            return
-        channel = message.channel
-        # 指定のチャンネル以外では反応しない。
-        if channel.name == ANALYZE_TARGET_CHANNEL_NAME:
+        # 指定のチャンネル名以外では反応しない。
+        if (
+            message.author == bot.user
+            or ANALYZE_TARGET_CHANNEL_NAME not in message.channel.name
+        ):
+            # コマンドがあれば実行できるように渡す。
+            await bot.process_commands(message)
             return
 
-        logger.info("ark 画像解析開始")
+        logger.info("画像解析リクエストを受け取りました。")
+        logger.info("画像取得：開始")
         images = [
             await a.read()
             for a in message.attachments
@@ -106,9 +109,12 @@ def setup_ollama(bot: commands.Bot):
             images = [Image(value=image) for image in images]
         else:
             images = None
+        logger.info("画像取得：完了")
+        logger.info("画像解析：開始")
         resp = await client.chat(
             model=ANALYZE_MODEL,
             messages=[OllamaMessage(role="user", images=images)],
             stream=False,
         )
-        await channel.send(resp.message.content)
+        logger.info("画像解析：完了")
+        await message.channel.send(resp.message.content)
