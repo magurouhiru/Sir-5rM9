@@ -49,5 +49,10 @@ def setup_ark(bot: commands.Bot):
         logger.info("画像取得：完了")
 
         logger.info("画像解析：開始")
-        ocr_main(image_bytes_list[0])
+        resp = ocr_main(image_bytes_list[0])
         logger.info("画像解析：完了")
+
+        message.channel.send(
+            f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.name}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
+            silent=True,
+        )

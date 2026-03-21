@@ -97,7 +97,9 @@ def ocr_main(image_bytes: bytes):
 
 
 def read_status_text(image_list: list[NDArray], allowlist: str):
-    return [reader.readtext(image, allowlist=allowlist) for image in image_list]
+    return [
+        reader.readtext(image, allowlist=allowlist, mag_ratio=2) for image in image_list
+    ]
 
 
 def get_name(results: list[list]):
