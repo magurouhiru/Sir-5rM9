@@ -30,7 +30,8 @@ COPY --from=builder /app/.venv /app/.venv
 COPY . .
 
 # 仮想環境のパスを優先的に使う設定
-ENV PATH="/app/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH" \
+    APP_ENV=production
 
 # 実行コマンド（例：main.py を実行）
 ENTRYPOINT ["python", "main.py"]
