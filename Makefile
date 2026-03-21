@@ -14,3 +14,6 @@ image_version:
 
 image_latest:
 	docker build -t sir_5rm9:latest .
+
+push_image_latest:
+	docker build --push -t sir_5rm9:latest .
