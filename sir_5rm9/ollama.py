@@ -10,11 +10,13 @@ logger = logging.getLogger(__name__)
 client = AsyncClient(
     host="http://ollama:11434", headers={"x-some-header": "some-value"}
 )
-BASE_MODEL = "qwen3.5"
-# BASE_MODEL = "qwen3-vl"
-# BASE_MODEL = "gemma3"
-# BASE_MODEL = "moondream"
-ANALYZE_MODEL = f"ark-analyzer:{BASE_MODEL}"
+BASE_MODEL = "qwen3.5:2b"
+# BASE_MODEL = "qwen3.5:0.8b"
+# BASE_MODEL = "qwen3-vl:2b"
+# BASE_MODEL = "gemma3:latest"
+# BASE_MODEL = "glm-ocr:latest"
+# BASE_MODEL = "moondream:latest"
+ANALYZE_MODEL = f"ark-analyzer_{BASE_MODEL}"
 ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
@@ -78,7 +80,7 @@ def setup_ollama(bot: commands.Bot):
                 マックスの値のみを取得してください。
                 また、近接攻撃力は%で表示されているので、100で割り%なし(例:150%→1.5)にしてください。
 
-                取得した値は下記の形式の{}に埋め込みリンクを出力してください。
+                取得した値は下記の形式の{}に埋め込みリンクを平文のテキストで返信してください。
                 https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={名前}&h={体力}&s={スタミナ}&o={酸素量}&f={食料}&w={重量}&m={近接攻撃力}&t={気絶値}
 
                 注意事項：
@@ -102,7 +104,7 @@ def setup_ollama(bot: commands.Bot):
             await bot.process_commands(message)
             return
 
-        await message.channel.send("画像解析リクエストを受け取りました。")
+        await message.channel.send("画像解析リクエストを受け取りました。", silent=True)
         logger.info("画像解析リクエストを受け取りました。")
         logger.info("画像取得：開始")
         images = [
@@ -118,11 +120,27 @@ def setup_ollama(bot: commands.Bot):
         logger.info("画像解析：開始")
         resp = await client.chat(
             model=ANALYZE_MODEL,
-            messages=[OllamaMessage(role="user", images=images)],
+            messages=[
+                OllamaMessage(
+                    role="user",
+                    images=images,
+                    message="添付画像を解析してリンクを省略せずに全文返してください。",
+                )
+            ],
             stream=False,
         )
-        logger.info("画像解析：完了")
+        print(resp.message)
         if resp.message.content is None or resp.message.content == "":
-            await message.channel.send("なんか失敗したっぽい")
+            logger.warning("画像解析：失敗")
+            await message.channel.send("なんか失敗したっぽい", silent=True)
             return
-        await message.channel.send(resp.message.content)
+        logger.info("画像解析：完了")
+        await message.channel.send(resp.message.content, silent=True)
+
+    @bot.command()
+    async def d(ctx: commands.Context):
+        await client.delete(ANALYZE_MODEL)
+        resp = await client.list()
+        models = {m.model for m in resp.models if m.model is not None}
+        logger.info(f"利用可能なモデル： {models}")
+        await ctx.send("deleted!")
