@@ -47,5 +47,5 @@ jobs:
         REGISTRY: ghcr.io
         IMAGE_NAME: ${{ github.repository }}
       run: |
-        docker build -t ${REGISTRY}/${IMAGE_NAME,,}:latest .
-        docker push ${REGISTRY}/${IMAGE_NAME,,}:latest
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}:$(date +%s) .
+        docker push ${REGISTRY}/${IMAGE_NAME,,}:$(date +%s)
