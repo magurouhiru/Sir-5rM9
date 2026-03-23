@@ -1,8 +1,3 @@
-import logging
-
-logger = logging.getLogger(__name__)
-
-
 # Docker Secretからシークレットを取得する関数
 def get_secret(secret_name):
     path = f"/run/secrets/{secret_name}"
