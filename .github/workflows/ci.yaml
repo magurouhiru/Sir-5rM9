@@ -1,4 +1,4 @@
-name: ci
+name: cicd
 
 on:
   pull_request:
@@ -6,11 +6,16 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -24,3 +29,23 @@ jobs:
       run: |
         uv run ruff check --output-format=github
         uv run ruff format --check --output-format=github
+
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v6
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build the Docker image
+      env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{ github.repository }}
+      run: |
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}:$(date +%s) .
+        docker push ${REGISTRY}/${IMAGE_NAME,,}:$(date +%s)
