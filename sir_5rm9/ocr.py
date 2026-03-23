@@ -155,6 +155,13 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
     value_list: list[str] = [
         v if v.find(".") > 0 else v[:-1] + "." + v[-1:] for v in value_list
     ]
+    # .の右隣りまで
+    for i, v in enumerate(value_list):
+        dotindex = v.find(".")
+        if dotindex < 0:
+            # 上で設定しているので、ここには来ない想定
+            continue
+        value_list[i] = v[: dotindex + 2]
 
     if len(value_list) == 7:
         # 全部のステータスが表示されているときにここへ来る想定

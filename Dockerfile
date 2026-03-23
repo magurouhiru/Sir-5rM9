@@ -1,5 +1,5 @@
 # --- Build Stage ---
-FROM python:3.13-slim AS builder
+FROM astral/uv:0.10.12-python3.13-trixie AS builder
 
 # Poetryのインストール先などを設定
 ENV PYTHONUNBUFFERED=1 \
@@ -11,14 +11,8 @@ WORKDIR /app
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
 
-# Poetryのインストール
 # 仮想環境 (.venv) を作成し、ライブラリをインストール
-RUN apt update && \
-    apt upgrade -y && \
-    apt install -y pipx && \
-    pip3 install --upgrade pip && \
-    pipx install uv && \
-    uv sync --no-dev
+RUN uv sync --no-dev
 
 # --- Run Stage ---
 FROM python:3.13-slim AS runner
