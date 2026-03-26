@@ -17,6 +17,8 @@ reader = easyocr.Reader(["ja"], gpu=False)
 
 
 def ocr_main(image_bytes: bytes):
+    if ENV == AppEnv.DEVELOPMENT.value:
+        os.makedirs("ocr_dev", exist_ok=True)
     # 画像取得
     original_image = Image.open(io.BytesIO(image_bytes))
     if ENV == AppEnv.DEVELOPMENT.value:
