@@ -1,9 +1,10 @@
 import logging
+from typing import List
 
-from discord import Message
+import aiohttp
+from aiohttp import FormData
+from discord import Attachment, Message
 from discord.ext import commands
-
-from .ocr import ocr_main
 
 logger = logging.getLogger(__name__)
 
@@ -31,19 +32,33 @@ def setup_ark(bot: commands.Bot):
         await message.channel.send("画像解析リクエストを受け取りました。", silent=True)
         logger.info("画像解析リクエストを受け取りました。")
 
-        image_bytes_list = [
-            await a.read()
-            for a in message.attachments
-            if a.content_type.startswith("image")
+        image_attachments: List[Attachment] = [
+            a for a in message.attachments if a.content_type.startswith("image")
         ]
-        if len(image_bytes_list) <= 0:
+        if len(image_attachments) <= 0:
             await message.channel.send("画像がないよう～", silent=True)
             logger.info("画像なしで終了。")
             return
 
-        resp = ocr_main(image_bytes_list[0])
-        await message.channel.send(
-            f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp['name']}&h={resp['status']['h']}&s={resp['status']['s']}&o={resp['status']['o']}&f={resp['status']['f']}&w={resp['status']['w']}&m={resp['status']['m']}&t={resp['status']['t']}",
-            silent=True,
-            mention_author=True,
+        # FormDataオブジェクトを作成
+        data = FormData()
+        # "file" はサーバー側が期待するフィールド名
+        data.add_field(
+            "file",
+            await image_attachments[0].read(),
+            filename=image_attachments[0].filename,
+            content_type=image_attachments[0].content_type,
         )
+        async with aiohttp.ClientSession() as session:
+            async with session.post("http://localhost:8000/ocr", data=data) as response:
+                print("Status:", response.status)
+                print("Content-type:", response.headers["content-type"])
+
+                html = await response.text()
+                print("Body:", html)
+        # resp = ocr_main(image_bytes_list[0])
+        # await message.channel.send(
+        #     f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp['name']}&h={resp['status']['h']}&s={resp['status']['s']}&o={resp['status']['o']}&f={resp['status']['f']}&w={resp['status']['w']}&m={resp['status']['m']}&t={resp['status']['t']}",
+        #     silent=True,
+        #     mention_author=True,
+        # )

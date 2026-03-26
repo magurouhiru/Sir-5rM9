@@ -1,0 +1,24 @@
+[project]
+name = "ocr"
+version = "0.1.0"
+description = "bot から呼び出すocr サーバー"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "torch",
+    "torchvision ",
+    "easyocr>=1.7.2",
+    "fastapi[standard]>=0.135.2",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.15.6"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }       # torchだけCPU版サイトを見に行く
+torchvision = { index = "pytorch-cpu" } # torchだけCPU版サイトを見に行く
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
