@@ -12,3 +12,12 @@ class AppEnv(Enum):
 
 
 DISCORD_TOKEN: Final[str] = "DISCORD_TOKEN"
+
+WITH_OCR: Final[str] = "WITH_OCR"
+WITH_OCR_ON: Final[str] = "on"
+WITH_OCR_OFF: Final[str] = "off"
+
+
+class WithOcr(Enum):
+    ON = WITH_OCR_ON
+    OFF = WITH_OCR_OFF

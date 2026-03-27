@@ -1,6 +1,10 @@
+import easyocr
 from fastapi import FastAPI, File, UploadFile
 
 app = FastAPI()
+
+
+reader = easyocr.Reader(["ja"], gpu=False)
 
 
 @app.get("/")
@@ -17,7 +21,13 @@ def read_item(item_id: int, q: str | None = None):
 async def upload_image(file: UploadFile = File(...)):
     # メタデータ取得
     filename = file.filename
+    content_type = file.content_type
     # 画像バイナリ取得
     data = await file.read()
+    print(filename)
+    print(content_type)
+    print(len(data))
+    result = reader.readtext(data, detail=0)
 
-    return {"filename": filename, "size": len(data)}
+    # return {"filename": filename, "content_type": content_type}
+    return {"result": result}
