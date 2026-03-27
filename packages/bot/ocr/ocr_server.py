@@ -3,8 +3,11 @@ import time
 from dataclasses import asdict
 
 from aiohttp import ClientSession, FormData
+from aiohttp.typedefs import LooseHeaders
 from PIL import Image
 from pydantic import BaseModel
+
+from settings.settings import settings
 
 from .ocr import ImageReader, Options
 
@@ -14,13 +17,19 @@ class OCRResult(BaseModel):
 
 
 class OcrServerImageReader(ImageReader):
-    def __init__(self):
+    def __init__(self, base_url: str, headers: LooseHeaders):
         super().__init__()
+        self.base_url = base_url
+        self.headers = headers
+        if settings.dev_mode:
+            print(self.base_url)
 
     async def try_connect(self) -> bool:
         for _ in range(5):
-            async with ClientSession() as session:
-                async with session.get("http://localhost:8000/ready") as response:
+            async with ClientSession(
+                base_url=self.base_url, headers=self.headers
+            ) as session:
+                async with session.get("/ready") as response:
                     if response.status == 200:
                         return True
                     time.sleep(2)
@@ -31,7 +40,7 @@ class OcrServerImageReader(ImageReader):
         image: Image.Image,
         options: Options,
     ) -> list[str]:
-        self.try_connect()
+        await self.try_connect()
         # 1. メモリ上にバイナリデータを保存するためのバッファを作成
         buffer = io.BytesIO()
 
@@ -50,10 +59,15 @@ class OcrServerImageReader(ImageReader):
             content_type="image/png",
         )
         filtered_params = {k: v for k, v in asdict(options).items() if v is not None}
-        async with ClientSession() as session:
+        async with ClientSession(
+            base_url=self.base_url, headers=self.headers
+        ) as session:
             async with session.post(
-                "http://localhost:8000/ocr", data=data, params=filtered_params
+                "/ocr", data=data, params=filtered_params
             ) as response:
-                text = await response.text()
+                if response.status == 200:
+                    text = await response.text()
+                else:
+                    raise Exception(response.json)
         result = OCRResult.model_validate_json(text)
         return result.result

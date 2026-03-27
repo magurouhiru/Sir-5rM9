@@ -1,10 +1,17 @@
 services:
-  app:
-    image: sir_5rm9:latest
+  bot:
+    image: sir_5rm9_bot:latest
     environment:
-      - APP_ENV=production
+      - DEV_MODE=on
+      - with_ocr_server=on
+      - with_gcp_token=off
+      - ocr_server_path=http://ocr
     secrets:
       - DISCORD_TOKEN
+  ocr:
+    image: sir_5rm9_ocr:latest
+    ports:
+      - "8000:80"
 
 secrets:
   DISCORD_TOKEN:

@@ -1,20 +1,17 @@
 import logging
-import os
 
 import discord
 from discord.ext import commands
 
 import sir_5rm9
-from config.config import APP_ENV, DISCORD_TOKEN, AppEnv
+from settings.settings import settings
 from utils import get_secret
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    ENV = os.getenv(APP_ENV)
-
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         logger.setLevel(logging.DEBUG)
 
     intents = discord.Intents.default()
@@ -23,7 +20,7 @@ def main():
 
     sir_5rm9.setup_all(bot)
 
-    TOKEN = get_secret(DISCORD_TOKEN)
+    TOKEN = get_secret("DISCORD_TOKEN")
     bot.run(
         TOKEN,
         root_logger=True,

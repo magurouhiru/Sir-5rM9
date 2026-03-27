@@ -8,11 +8,14 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+RUN mkdir -p packages/bot
+
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
+COPY ./packages/bot/pyproject.toml ./packages/bot/
 
 # 仮想環境 (.venv) を作成し、ライブラリをインストール
-RUN uv sync --no-dev
+RUN uv sync --no-dev --package bot
 
 # --- Run Stage ---
 FROM python:3.13-slim AS runner
@@ -21,11 +24,10 @@ WORKDIR /app
 
 # ビルドステージで作った仮想環境だけをコピー
 COPY --from=builder /app/.venv /app/.venv
-COPY . .
+COPY ./packages/bot ./packages/bot
 
 # 仮想環境のパスを優先的に使う設定
-ENV PATH="/app/.venv/bin:$PATH" \
-    APP_ENV=production
+ENV PATH="/app/.venv/bin:$PATH"
 
 # 実行コマンド（例：main.py を実行）
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "/app/packages/bot/main.py"]

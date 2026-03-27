@@ -6,15 +6,10 @@ from dataclasses import dataclass
 from discord import Attachment
 from PIL import Image
 
-from config.config import APP_ENV, AppEnv
-from ocr.builder import builder
-from ocr.ocr import Options
-
-ENV = os.getenv(APP_ENV)
+from ocr.ocr import ImageReader, Options
+from settings.settings import settings
 
 logger = logging.getLogger(__name__)
-
-reader = builder()
 
 
 @dataclass
@@ -34,13 +29,13 @@ class AnalyzeResult:
     status: Status
 
 
-async def analyze_main(attachment: Attachment) -> AnalyzeResult:
-    if ENV == AppEnv.DEVELOPMENT.value:
+async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeResult:
+    if settings.dev_mode:
         os.makedirs("ocr_dev", exist_ok=True)
     # 画像取得
     image_bytes = await attachment.read()
     original_image = Image.open(io.BytesIO(image_bytes))
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         original_image.save("./ocr_dev/original_image.png")
 
     # トリミング
@@ -53,12 +48,12 @@ async def analyze_main(attachment: Attachment) -> AnalyzeResult:
         original_height * 0.7,
     )
     cropped_image = original_image.crop(crop_box)
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         cropped_image.save("./ocr_dev/cropped_image.png")
 
     # グレースケール変換
     grayscale_image = cropped_image.convert("L")
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         grayscale_image.save("./ocr_dev/grayscale_image.png")
 
     # 開発用(解析に使うimageを簡単に切り替えられるように)
@@ -70,7 +65,7 @@ async def analyze_main(attachment: Attachment) -> AnalyzeResult:
     ## 名前
     name_crop_box = (0, gray_height * 0.12, gray_width, gray_height * 0.155)
     cropped_name_image = final_resized_image.crop(name_crop_box)
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         cropped_name_image.save("./ocr_dev/cropped_name_image.png")
     ## ステータス
     status_start = gray_height * 0.53
@@ -87,7 +82,7 @@ async def analyze_main(attachment: Attachment) -> AnalyzeResult:
     cropped_status_image_list = [
         final_resized_image.crop(cb) for cb in status_crop_box_list
     ]
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         for i, image in enumerate(cropped_status_image_list):
             image.save(f"./ocr_dev/cropped_status_image_{i}.png")
 
@@ -98,30 +93,21 @@ async def analyze_main(attachment: Attachment) -> AnalyzeResult:
         image=cropped_name_image,
         options=Options(allowlist=None, decoder="beamsearch", beamWidth=5),
     )
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         for i, nr in enumerate(name_results):
             logging.info(f"name: index: {i}, text: {nr[1]}")
-    ## ステータス
-    # status_image_list = [np.array(csi) for csi in cropped_status_image_list]
-    status_results_list = await read_status_text(
-        cropped_status_image_list, "0123456789/%."
-    )
-    if ENV == AppEnv.DEVELOPMENT.value:
-        for i, srs in enumerate(status_results_list):
-            for j, sr in enumerate(srs):
-                logging.info(f"status: index: {i} {j}, text: {sr[1]}")
 
     result = AnalyzeResult(
         n="".join(name_results),
-        status=await get_status(cropped_status_image_list),
+        status=await get_status(cropped_status_image_list, reader),
     )
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         logging.info(f"result: {result}")
     return result
 
 
 async def read_status_text(
-    image_list: list[Image.Image], allowlist: str
+    image_list: list[Image.Image], allowlist: str, reader: ImageReader
 ) -> list[list[str]]:
     return [
         await reader.read(
@@ -140,19 +126,19 @@ async def read_status_text(
     ]
 
 
-async def get_status(image_list: list[Image.Image]) -> Status:
+async def get_status(image_list: list[Image.Image], reader: ImageReader) -> Status:
     # textのみを抽出
     text_list_list: list[list[str]] = await read_status_text(
-        image_list, "0123456789/%."
+        image_list, "0123456789/%.", reader
     )
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         logging.info(f"text_list_list: {text_list_list}")
     # /が1とかになってる想定で修正する。
     # 1を含めないでテキスト抽出
     tmp_text_list_list: list[list[str]] = await read_status_text(
-        image_list, "023456789/%."
+        image_list, "023456789/%.", reader
     )
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         logging.info(f"tmp_text_list_list: {tmp_text_list_list}")
     # 返す値のリスト
     value_list: list[str] = []
