@@ -29,5 +29,8 @@ COPY ./packages/ocr ./packages/ocr
 # 仮想環境のパスを優先的に使う設定
 ENV PATH="/app/.venv/bin:$PATH"
 
+# easyocrのモジュールを含める
+RUN python -c "import easyocr; easyocr.Reader([\"ja\"], gpu=False)"
+
 # 実行コマンド（例：main.py を実行）
 ENTRYPOINT ["fastapi", "run", "/app/packages/ocr/main.py", "--port", "80", "--host", "0.0.0.0"]
