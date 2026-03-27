@@ -1,4 +1,5 @@
 import io
+import logging
 import time
 from dataclasses import asdict
 
@@ -11,6 +12,8 @@ from settings.settings import settings
 
 from .ocr import ImageReader, Options
 
+logger = logging.getLogger(__name__)
+
 
 class OCRResult(BaseModel):
     result: list[str]
@@ -21,11 +24,14 @@ class OcrServerImageReader(ImageReader):
         super().__init__()
         self.base_url = base_url
         self.headers = headers
-        if settings.dev_mode:
-            print(self.base_url)
+        logger.info("init: OcrServerImageReader")
+        if not settings.with_ocr_server:
+            logger.error(
+                f"settings.with_ocr_server{settings.with_ocr_server}だけど、OCRサーバーモードなのにOcrServerImageReader が初期化されました。"
+            )
 
     async def try_connect(self) -> bool:
-        for _ in range(5):
+        for _ in range(10):
             async with ClientSession(
                 base_url=self.base_url, headers=self.headers
             ) as session:

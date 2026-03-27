@@ -21,6 +21,11 @@ app = FastAPI()
 reader = easyocr.Reader(["ja"], gpu=False, verbose=False)
 
 
+@app.get("/")
+def root():
+    return {"hello": "world"}
+
+
 @app.get("/ready")
 def ready():
     return {"ready": "ok"}
