@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    logger.info(f"settings: {settings.model_dump}")
     if settings.dev_mode:
         logger.setLevel(logging.DEBUG)
 

@@ -1,7 +1,7 @@
 services:
   bot:
-    # image: sir_5rm9_bot:latest
-    image: ghcr.io/magurouhiru/sir-5rm9_bot:20260327
+    image: sir_5rm9_bot:latest
+    # image: ghcr.io/magurouhiru/sir-5rm9_bot:20260327
     environment:
       - DEV_MODE=on
       - WITH_OCR_SERVER=on
@@ -10,8 +10,8 @@ services:
     secrets:
       - DISCORD_TOKEN
   ocr:
-    # image: sir_5rm9_ocr:latest
-    image: ghcr.io/magurouhiru/sir-5rm9_ocr:20260327
+    image: sir_5rm9_ocr:latest
+    # image: ghcr.io/magurouhiru/sir-5rm9_ocr:20260327
     command: --host 0.0.0.0 --port 8080
     ports:
       - "8000:8080"
