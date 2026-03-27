@@ -1,22 +1,37 @@
 import io
+import time
+from dataclasses import asdict
 
 from aiohttp import ClientSession, FormData
 from PIL import Image
+from pydantic import BaseModel
 
 from .ocr import ImageReader, Options
+
+
+class OCRResult(BaseModel):
+    result: list[str]
 
 
 class OcrServerImageReader(ImageReader):
     def __init__(self):
         super().__init__()
 
+    async def try_connect(self) -> bool:
+        for _ in range(5):
+            async with ClientSession() as session:
+                async with session.get("http://localhost:8000/ready") as response:
+                    if response.status == 200:
+                        return True
+                    time.sleep(2)
+        return False
+
     async def read(
         self,
         image: Image.Image,
         options: Options,
-        filename: str = None,
-        content_type: str = None,
     ) -> list[str]:
+        self.try_connect()
         # 1. メモリ上にバイナリデータを保存するためのバッファを作成
         buffer = io.BytesIO()
 
@@ -34,11 +49,11 @@ class OcrServerImageReader(ImageReader):
             filename="image.png",
             content_type="image/png",
         )
+        filtered_params = {k: v for k, v in asdict(options).items() if v is not None}
         async with ClientSession() as session:
-            async with session.post("http://localhost:8000/ocr", data=data) as response:
-                print("Status:", response.status)
-                print("Content-type:", response.headers["content-type"])
-
-                html = await response.text()
-                print("Body:", html)
-        return html["result"]
+            async with session.post(
+                "http://localhost:8000/ocr", data=data, params=filtered_params
+            ) as response:
+                text = await response.text()
+        result = OCRResult.model_validate_json(text)
+        return result.result

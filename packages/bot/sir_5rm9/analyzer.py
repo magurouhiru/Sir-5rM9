@@ -19,13 +19,13 @@ reader = builder()
 
 @dataclass
 class Status:
-    h: str
-    s: str
-    o: str
-    f: str
-    w: str
+    h: float
+    s: float
+    o: float
+    f: float
+    w: float
     m: float
-    t: str
+    t: float
 
 
 @dataclass
@@ -191,22 +191,22 @@ async def get_status(image_list: list[Image.Image]) -> Status:
     if len(value_list) == 7:
         # 全部のステータスが表示されているときにここへ来る想定
         return Status(
-            h=value_list[0],
-            s=value_list[1],
-            o=value_list[2],
-            f=value_list[3],
-            w=value_list[4],
+            h=float(value_list[0]),
+            s=float(value_list[1]),
+            o=float(value_list[2]),
+            f=float(value_list[3]),
+            w=float(value_list[4]),
             m=float(value_list[5]) / 100,
-            t=value_list[6],
+            t=float(value_list[6]),
         )
     else:
         # 酸素量がないときにここへ来る想定
         return Status(
-            h=value_list[0],
-            s=value_list[1],
-            o="0",
-            f=value_list[2],
-            w=value_list[3],
+            h=float(value_list[0]),
+            s=float(value_list[1]),
+            o=float("0"),
+            f=float(value_list[2]),
+            w=float(value_list[3]),
             m=float(value_list[4]) / 100,
-            t=value_list[5],
+            t=float(value_list[5]),
         )

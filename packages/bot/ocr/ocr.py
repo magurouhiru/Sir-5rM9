@@ -23,7 +23,5 @@ class ImageReader(ABC):
         self,
         image: Image.Image,
         options: Options,
-        filename: str = None,
-        content_type: str = None,
     ) -> list[str]:
         pass

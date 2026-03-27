@@ -1,5 +1,19 @@
 import easyocr
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Query, UploadFile
+from pydantic import BaseModel
+
+
+class SearchParams(BaseModel):
+    allowlist: str = None
+    decoder: str = None
+    beamWidth: int = None
+    mag_ratio: float = None
+    contrast_ths: float = None
+    adjust_contrast: float = None
+    text_threshold: float = None
+    low_text: float = None
+    link_threshold: float = None
+
 
 app = FastAPI()
 
@@ -7,27 +21,15 @@ app = FastAPI()
 reader = easyocr.Reader(["ja"], gpu=False)
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/ready")
+def ready():
+    return {"ready": "ok"}
 
 
 @app.post("/ocr")
-async def upload_image(file: UploadFile = File(...)):
-    # メタデータ取得
-    filename = file.filename
-    content_type = file.content_type
-    # 画像バイナリ取得
+async def upload_image(file: UploadFile = File(...), params: SearchParams = Query()):
     data = await file.read()
-    print(filename)
-    print(content_type)
-    print(len(data))
-    result = reader.readtext(data, detail=0)
+    filtered_params = {k: v for k, v in params.model_dump().items() if v is not None}
+    result = reader.readtext(data, detail=0, **filtered_params)
 
-    # return {"filename": filename, "content_type": content_type}
     return {"result": result}
