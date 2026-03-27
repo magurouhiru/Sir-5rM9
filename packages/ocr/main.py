@@ -18,7 +18,7 @@ class SearchParams(BaseModel):
 app = FastAPI()
 
 
-reader = easyocr.Reader(["ja"], gpu=False)
+reader = easyocr.Reader(["ja"], gpu=False, verbose=False)
 
 
 @app.get("/ready")
