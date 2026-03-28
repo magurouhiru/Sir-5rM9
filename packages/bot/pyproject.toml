@@ -5,10 +5,7 @@ description = "Discord の Bot"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "torch",
-    "torchvision ",
     "discord>=2.3.2",
-    "easyocr>=1.7.2",
     "pydantic-settings>=2.13.1",
     "google-auth>=2.49.1",
     "requests>=2.33.0",
@@ -16,12 +13,3 @@ dependencies = [
 
 [dependency-groups]
 dev = ["ruff>=0.15.6"]
-
-[tool.uv.sources]
-torch = { index = "pytorch-cpu" }       # torchだけCPU版サイトを見に行く
-torchvision = { index = "pytorch-cpu" } # torchだけCPU版サイトを見に行く
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
