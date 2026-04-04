@@ -58,7 +58,10 @@ class OcrServerImageReader(ImageReader):
         options: Options,
     ) -> list[str]:
         headers = self.get_headers()
-        await self.try_connect(headers=headers)
+        is_connected = await self.try_connect(headers=headers)
+        if not is_connected:
+            raise Exception("Failed to connect to OCR server")
+
         # 1. メモリ上にバイナリデータを保存するためのバッファを作成
         buffer = io.BytesIO()
 
