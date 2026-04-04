@@ -57,7 +57,7 @@ class OcrServerImageReader(ImageReader):
         image: Image.Image,
         options: Options,
     ) -> list[str]:
-        headers = self.get_headers()
+        headers = await self.get_headers()
         is_connected = await self.try_connect(headers=headers)
         if not is_connected:
             raise Exception("Failed to connect to OCR server")
