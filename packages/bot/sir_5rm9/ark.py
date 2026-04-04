@@ -42,9 +42,17 @@ def setup_ark(bot: commands.Bot, reader: ImageReader):
             logger.info("画像なしで終了。")
             return
 
-        resp = await analyze_main(image_attachments[0], reader)
-        await message.channel.send(
-            f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
-            silent=True,
-            mention_author=True,
-        )
+        try:
+            resp = await analyze_main(image_attachments[0], reader)
+            await message.channel.send(
+                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
+                silent=True,
+                mention_author=True,
+            )
+        except Exception as e:
+            logger.exception("画像解析に失敗しました。")
+            await message.channel.send(
+                f"画像解析に失敗しました。{str(e)}",
+                silent=True,
+                mention_author=True,
+            )
