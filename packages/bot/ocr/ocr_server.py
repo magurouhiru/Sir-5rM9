@@ -31,7 +31,7 @@ class OcrServerImageReader(ImageReader):
                 f"settings.with_ocr_server{settings.with_ocr_server}だけど、OCRサーバーモードなのにOcrServerImageReader が初期化されました。"
             )
 
-    async def get_headers(self) -> LooseHeaders:
+    def get_headers(self) -> LooseHeaders:
         if settings.with_gcp_token:
             token = id_token.fetch_id_token(Request(), self.base_url)
             headers = {
@@ -57,10 +57,10 @@ class OcrServerImageReader(ImageReader):
         image: Image.Image,
         options: Options,
     ) -> list[str]:
-        headers = await self.get_headers()
+        headers = self.get_headers()
         is_connected = await self.try_connect(headers=headers)
         if not is_connected:
-            raise Exception("Failed to connect to OCR server")
+            raise Exception("OCR server に接続できないよ～")
 
         # 1. メモリ上にバイナリデータを保存するためのバッファを作成
         buffer = io.BytesIO()
