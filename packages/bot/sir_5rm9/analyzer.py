@@ -1,25 +1,41 @@
 import io
 import logging
 import os
+from dataclasses import dataclass
 
-import easyocr
-import numpy as np
-from numpy.typing import NDArray
+from discord import Attachment
 from PIL import Image
 
-from config.config import APP_ENV, AppEnv
-
-ENV = os.getenv(APP_ENV)
+from ocr.ocr import ImageReader, Options
+from settings.settings import settings
 
 logger = logging.getLogger(__name__)
 
-reader = easyocr.Reader(["ja"], gpu=False)
+
+@dataclass
+class Status:
+    h: float
+    s: float
+    o: float
+    f: float
+    w: float
+    m: float
+    t: float
 
 
-def ocr_main(image_bytes: bytes):
+@dataclass
+class AnalyzeResult:
+    n: str
+    status: Status
+
+
+async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeResult:
+    if settings.dev_mode:
+        os.makedirs("ocr_dev", exist_ok=True)
     # 画像取得
+    image_bytes = await attachment.read()
     original_image = Image.open(io.BytesIO(image_bytes))
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         original_image.save("./ocr_dev/original_image.png")
 
     # トリミング
@@ -32,12 +48,12 @@ def ocr_main(image_bytes: bytes):
         original_height * 0.7,
     )
     cropped_image = original_image.crop(crop_box)
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         cropped_image.save("./ocr_dev/cropped_image.png")
 
     # グレースケール変換
     grayscale_image = cropped_image.convert("L")
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         grayscale_image.save("./ocr_dev/grayscale_image.png")
 
     # 開発用(解析に使うimageを簡単に切り替えられるように)
@@ -49,7 +65,7 @@ def ocr_main(image_bytes: bytes):
     ## 名前
     name_crop_box = (0, gray_height * 0.12, gray_width, gray_height * 0.155)
     cropped_name_image = final_resized_image.crop(name_crop_box)
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         cropped_name_image.save("./ocr_dev/cropped_name_image.png")
     ## ステータス
     status_start = gray_height * 0.53
@@ -66,68 +82,63 @@ def ocr_main(image_bytes: bytes):
     cropped_status_image_list = [
         final_resized_image.crop(cb) for cb in status_crop_box_list
     ]
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         for i, image in enumerate(cropped_status_image_list):
             image.save(f"./ocr_dev/cropped_status_image_{i}.png")
 
     # テキスト抽出
     ## 名前
-    name_image = np.array(cropped_name_image)
-    name_results = reader.readtext(
-        name_image, allowlist=None, decoder="beamsearch", beamWidth=5
+    # name_image = np.array(cropped_name_image)
+    name_results = await reader.read(
+        image=cropped_name_image,
+        options=Options(allowlist=None, decoder="beamsearch", beamWidth=5),
     )
-    if ENV == AppEnv.DEVELOPMENT.value:
+    if settings.dev_mode:
         for i, nr in enumerate(name_results):
             logging.info(f"name: index: {i}, text: {nr[1]}")
-    ## ステータス
-    status_image_list = [np.array(csi) for csi in cropped_status_image_list]
-    status_results_list = read_status_text(status_image_list, "0123456789/%.")
-    if ENV == AppEnv.DEVELOPMENT.value:
-        for i, srs in enumerate(status_results_list):
-            for j, sr in enumerate(srs):
-                logging.info(f"status: index: {i} {j}, text: {sr[1]}")
 
-    result = {
-        "name": get_name(name_results),
-        "status": get_status(status_image_list, status_results_list),
-    }
-    if ENV == AppEnv.DEVELOPMENT.value:
+    result = AnalyzeResult(
+        n="".join(name_results),
+        status=await get_status(cropped_status_image_list, reader),
+    )
+    if settings.dev_mode:
         logging.info(f"result: {result}")
     return result
 
 
-def read_status_text(image_list: list[NDArray], allowlist: str):
+async def read_status_text(
+    image_list: list[Image.Image], allowlist: str, reader: ImageReader
+) -> list[list[str]]:
     return [
-        reader.readtext(
-            image,
-            allowlist=allowlist,
-            mag_ratio=1.5,
-            contrast_ths=0.05,
-            adjust_contrast=0.9,
-            text_threshold=0.5,
-            low_text=0.2,
-            link_threshold=0.3,
+        await reader.read(
+            image=image,
+            options=Options(
+                allowlist=allowlist,
+                mag_ratio=1.5,
+                contrast_ths=0.05,
+                adjust_contrast=0.9,
+                text_threshold=0.5,
+                low_text=0.2,
+                link_threshold=0.3,
+            ),
         )
         for image in image_list
     ]
 
 
-def get_name(results: list[list]):
-    return "".join([r[1] for r in results])
-
-
-def get_status(image_list: list[NDArray], results_list: list[list[list]]):
+async def get_status(image_list: list[Image.Image], reader: ImageReader) -> Status:
     # textのみを抽出
-    text_list_list: list[list[str]] = [[r[1] for r in rs] for rs in results_list]
-    if ENV == AppEnv.DEVELOPMENT.value:
+    text_list_list: list[list[str]] = await read_status_text(
+        image_list, "0123456789/%.", reader
+    )
+    if settings.dev_mode:
         logging.info(f"text_list_list: {text_list_list}")
     # /が1とかになってる想定で修正する。
     # 1を含めないでテキスト抽出
-    tmp_results_list = read_status_text(image_list, "023456789/%.")
-    tmp_text_list_list: list[list[str]] = [
-        [tr[1] for tr in trs] for trs in tmp_results_list
-    ]
-    if ENV == AppEnv.DEVELOPMENT.value:
+    tmp_text_list_list: list[list[str]] = await read_status_text(
+        image_list, "023456789/%.", reader
+    )
+    if settings.dev_mode:
         logging.info(f"tmp_text_list_list: {tmp_text_list_list}")
     # 返す値のリスト
     value_list: list[str] = []
@@ -165,23 +176,23 @@ def get_status(image_list: list[NDArray], results_list: list[list[list]]):
 
     if len(value_list) == 7:
         # 全部のステータスが表示されているときにここへ来る想定
-        return {
-            "h": value_list[0],
-            "s": value_list[1],
-            "o": value_list[2],
-            "f": value_list[3],
-            "w": value_list[4],
-            "m": float(value_list[5]) / 100,
-            "t": value_list[6],
-        }
+        return Status(
+            h=float(value_list[0]),
+            s=float(value_list[1]),
+            o=float(value_list[2]),
+            f=float(value_list[3]),
+            w=float(value_list[4]),
+            m=float(value_list[5]) / 100,
+            t=float(value_list[6]),
+        )
     else:
         # 酸素量がないときにここへ来る想定
-        return {
-            "h": value_list[0],
-            "s": value_list[1],
-            "o": "0",
-            "f": value_list[2],
-            "w": value_list[3],
-            "m": float(value_list[4]) / 100,
-            "t": value_list[5],
-        }
+        return Status(
+            h=float(value_list[0]),
+            s=float(value_list[1]),
+            o=float("0"),
+            f=float(value_list[2]),
+            w=float(value_list[3]),
+            m=float(value_list[4]) / 100,
+            t=float(value_list[5]),
+        )

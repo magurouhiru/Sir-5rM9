@@ -1,16 +1,19 @@
 import logging
+from typing import List
 
-from discord import Message
+from discord import Attachment, Message
 from discord.ext import commands
 
-from .ocr import ocr_main
+from ocr.ocr import ImageReader
+
+from .analyzer import analyze_main
 
 logger = logging.getLogger(__name__)
 
 ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
-def setup_ark(bot: commands.Bot):
+def setup_ark(bot: commands.Bot, reader: ImageReader):
 
     @bot.event
     async def on_message(message: Message):
@@ -31,19 +34,25 @@ def setup_ark(bot: commands.Bot):
         await message.channel.send("画像解析リクエストを受け取りました。", silent=True)
         logger.info("画像解析リクエストを受け取りました。")
 
-        image_bytes_list = [
-            await a.read()
-            for a in message.attachments
-            if a.content_type.startswith("image")
+        image_attachments: List[Attachment] = [
+            a for a in message.attachments if a.content_type.startswith("image")
         ]
-        if len(image_bytes_list) <= 0:
+        if len(image_attachments) <= 0:
             await message.channel.send("画像がないよう～", silent=True)
             logger.info("画像なしで終了。")
             return
 
-        resp = ocr_main(image_bytes_list[0])
-        await message.channel.send(
-            f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp['name']}&h={resp['status']['h']}&s={resp['status']['s']}&o={resp['status']['o']}&f={resp['status']['f']}&w={resp['status']['w']}&m={resp['status']['m']}&t={resp['status']['t']}",
-            silent=True,
-            mention_author=True,
-        )
+        try:
+            resp = await analyze_main(image_attachments[0], reader)
+            await message.channel.send(
+                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
+                silent=True,
+                mention_author=True,
+            )
+        except Exception as e:
+            logger.exception("画像解析に失敗しました。")
+            await message.channel.send(
+                f"画像解析に失敗しました。{str(e)}",
+                silent=True,
+                mention_author=True,
+            )

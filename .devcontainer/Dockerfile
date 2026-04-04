@@ -14,7 +14,5 @@ RUN mkdir -p ${WORKSPACE} && \
 USER ${USERNAME}
 WORKDIR ${WORKSPACE}
 
-ENV APP_ENV=development
-
 RUN pip3 install --upgrade pip && \
     pipx install uv

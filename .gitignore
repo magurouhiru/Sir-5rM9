@@ -17,3 +17,4 @@ env/
 .env
 discord_token.txt
 ocr_dev
+start.sh
