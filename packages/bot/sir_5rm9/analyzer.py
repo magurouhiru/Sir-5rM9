@@ -3,11 +3,11 @@ import logging
 import os
 from dataclasses import dataclass
 
+from core import settings
 from discord import Attachment
 from PIL import Image
 
 from ocr.ocr import ImageReader, Options
-from settings.settings import settings
 
 logger = logging.getLogger(__name__)
 

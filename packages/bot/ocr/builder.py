@@ -1,6 +1,7 @@
 # from ocr.easy_ocr import EasyOcrImageReader
+from core import settings
+
 from ocr.ocr_server import OcrServerImageReader
-from settings.settings import settings
 
 
 def builder():

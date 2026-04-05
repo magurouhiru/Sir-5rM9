@@ -1,10 +1,10 @@
 import logging
 
 import discord
+from core import settings
 from discord.ext import commands
 
 import sir_5rm9
-from settings.settings import settings
 from utils import get_secret
 
 logger = logging.getLogger(__name__)

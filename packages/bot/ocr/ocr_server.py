@@ -5,12 +5,11 @@ from dataclasses import asdict
 
 from aiohttp import ClientSession, FormData
 from aiohttp.typedefs import LooseHeaders
+from core import settings
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 from PIL import Image
 from pydantic import BaseModel
-
-from settings.settings import settings
 
 from .ocr import ImageReader, Options
 

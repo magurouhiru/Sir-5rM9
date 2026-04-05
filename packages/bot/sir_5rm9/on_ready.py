@@ -1,8 +1,7 @@
 import logging
 
+from core import settings
 from discord.ext import commands
-
-from settings.settings import settings
 
 logger = logging.getLogger(__name__)
 

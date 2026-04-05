@@ -57,6 +57,7 @@
                     "editor.insertSpaces": false,
                     "editor.defaultFormatter": "ms-vscode.makefile-tools"
                 },
+                "ruff.format.preview": true,
                 "editor.formatOnSave": true
             }
         }
