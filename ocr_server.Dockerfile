@@ -12,10 +12,11 @@ RUN mkdir -p packages/ocr
 
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
+COPY ./packages/core ./packages/core
 COPY ./packages/ocr_server/pyproject.toml ./packages/ocr_server/
 
 # 仮想環境 (.venv) を作成し、ライブラリをインストール
-RUN uv sync --no-dev --package ocr_server
+RUN uv sync --no-dev --package ocr_server --no-cache --frozen --no-editable
 
 # --- Run Stage ---
 FROM python:3.13-slim AS runner
