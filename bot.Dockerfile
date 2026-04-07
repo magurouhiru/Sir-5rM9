@@ -1,7 +1,7 @@
 # --- Build Stage ---
 FROM astral/uv:0.10.12-python3.13-trixie AS builder
 
-# Poetryのインストール先などを設定
+# uvのインストール先などを設定
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/root/.local/bin:$PATH"
@@ -30,4 +30,4 @@ COPY ./packages/bot ./packages/bot
 ENV PATH="/app/.venv/bin:$PATH"
 
 # 実行コマンド（例：main.py を実行）
-ENTRYPOINT ["python", "/app/packages/bot/main.py"]
+ENTRYPOINT ["python", "/app/packages/bot/src/bot/main.py"]

@@ -1,7 +1,7 @@
 [project]
-name = "ocr"
+name = "ocr_server"
 version = "0.1.0"
-description = "bot から呼び出すocr サーバー"
+description = "OCR 機能を提供するサーバー"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

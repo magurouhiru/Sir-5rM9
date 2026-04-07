@@ -1,2 +1,7 @@
 [tool.uv.workspace]
 members = ["packages/*"]
+
+[tool.uv]
+exclude-newer = "1 week"
+# torchとtorchvisionは公式サイトから取得していてタイムスタンプがないので、最新を常に許可する
+exclude-newer-package = { torch = false, torchvision = false }
