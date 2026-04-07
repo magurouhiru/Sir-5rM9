@@ -1,17 +1,16 @@
 import io
 import logging
 import time
-from dataclasses import asdict
 
 from aiohttp import ClientSession, FormData
 from aiohttp.typedefs import LooseHeaders
-from core import settings
+from core import SearchParams, settings
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 from PIL import Image
 from pydantic import BaseModel
 
-from .ocr import ImageReader, Options
+from .ocr import ImageReader
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,7 @@ class OcrServerImageReader(ImageReader):
     async def read(
         self,
         image: Image.Image,
-        options: Options,
+        params: SearchParams,
     ) -> list[str]:
         headers = self.get_headers()
         is_connected = await self.try_connect(headers=headers)
@@ -78,10 +77,9 @@ class OcrServerImageReader(ImageReader):
             filename="image.png",
             content_type="image/png",
         )
-        filtered_params = {k: v for k, v in asdict(options).items() if v is not None}
         async with ClientSession(base_url=self.base_url, headers=headers) as session:
             async with session.post(
-                "/ocr", data=data, params=filtered_params
+                "/ocr", data=data, params=params.model_dump(exclude_none=True)
             ) as response:
                 if response.status == 200:
                     text = await response.text()

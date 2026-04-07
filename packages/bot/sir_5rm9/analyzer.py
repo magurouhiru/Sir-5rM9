@@ -3,11 +3,11 @@ import logging
 import os
 from dataclasses import dataclass
 
-from core import settings
+from core import SearchParams, settings
 from discord import Attachment
 from PIL import Image
 
-from ocr.ocr import ImageReader, Options
+from ocr.ocr import ImageReader
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeRe
     # name_image = np.array(cropped_name_image)
     name_results = await reader.read(
         image=cropped_name_image,
-        options=Options(allowlist=None, decoder="beamsearch", beamWidth=5),
+        params=SearchParams(decoder="beamsearch", beamWidth=5),
     )
     if settings.dev_mode:
         for i, nr in enumerate(name_results):
@@ -112,7 +112,7 @@ async def read_status_text(
     return [
         await reader.read(
             image=image,
-            options=Options(
+            params=SearchParams(
                 allowlist=allowlist,
                 mag_ratio=1.5,
                 contrast_ths=0.05,
