@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from core import SearchParams
+from core import OCRResultList, SearchParams
 from PIL import Image
 
 
@@ -10,5 +10,5 @@ class ImageReader(ABC):
         self,
         image: Image.Image,
         params: SearchParams,
-    ) -> list[str]:
+    ) -> OCRResultList:
         pass

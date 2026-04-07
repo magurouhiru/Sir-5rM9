@@ -5,7 +5,9 @@ services:
       dockerfile: Dockerfile
     tty: true
     environment:
-      - APP_ENV=development
+      - DEV_MODE=true
+      - WITH_GCP_TOKEN=false
+      - OCR_SERVER_PATH=http://localhost:8000
     secrets:
       - DISCORD_TOKEN
     volumes:

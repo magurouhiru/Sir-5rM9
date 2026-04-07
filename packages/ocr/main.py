@@ -1,5 +1,5 @@
 import easyocr
-from core import SearchParams
+from core import OCRResultList, SearchParams
 from fastapi import FastAPI, File, Query, UploadFile
 
 app = FastAPI()
@@ -13,14 +13,12 @@ def root():
     return {"hello": "world"}
 
 
-@app.get("/ready")
-def ready():
-    return {"ready": "ok"}
-
-
 @app.post("/ocr")
 async def upload_image(file: UploadFile = File(...), params: SearchParams = Query()):
     data = await file.read()
-    result = reader.readtext(data, detail=0, **params.model_dump(exclude_none=True))
+    raw_results = reader.readtext(
+        data, detail=1, **params.model_dump(exclude_none=True)
+    )
+    results = OCRResultList.model_validate(raw_results)
 
-    return {"result": result}
+    return results

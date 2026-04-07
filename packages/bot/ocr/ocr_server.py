@@ -4,19 +4,14 @@ import time
 
 from aiohttp import ClientSession, FormData
 from aiohttp.typedefs import LooseHeaders
-from core import SearchParams, settings
+from core import OCRResultList, SearchParams, settings
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 from PIL import Image
-from pydantic import BaseModel
 
 from .ocr import ImageReader
 
 logger = logging.getLogger(__name__)
-
-
-class OCRResult(BaseModel):
-    result: list[str]
 
 
 class OcrServerImageReader(ImageReader):
@@ -24,10 +19,6 @@ class OcrServerImageReader(ImageReader):
         super().__init__()
         self.base_url = base_url
         logger.info("init: OcrServerImageReader")
-        if not settings.with_ocr_server:
-            logger.error(
-                f"settings.with_ocr_server{settings.with_ocr_server}だけど、OCRサーバーモードなのにOcrServerImageReader が初期化されました。"
-            )
 
     def get_headers(self) -> LooseHeaders:
         if settings.with_gcp_token:
@@ -44,7 +35,7 @@ class OcrServerImageReader(ImageReader):
             async with ClientSession(
                 base_url=self.base_url, headers=headers
             ) as session:
-                async with session.get("/ready") as response:
+                async with session.get("/") as response:
                     if response.status == 200:
                         return True
                     time.sleep(2)
@@ -54,7 +45,7 @@ class OcrServerImageReader(ImageReader):
         self,
         image: Image.Image,
         params: SearchParams,
-    ) -> list[str]:
+    ) -> OCRResultList:
         headers = self.get_headers()
         is_connected = await self.try_connect(headers=headers)
         if not is_connected:
@@ -85,5 +76,5 @@ class OcrServerImageReader(ImageReader):
                     text = await response.text()
                 else:
                     raise Exception(response.json)
-        result = OCRResult.model_validate_json(text)
-        return result.result
+        results = OCRResultList.model_validate_json(text)
+        return results

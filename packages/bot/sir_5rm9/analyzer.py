@@ -3,8 +3,7 @@ import logging
 import os
 from dataclasses import dataclass
 
-from core import SearchParams, settings
-from discord import Attachment
+from core import OCRResultList, SearchParams, settings
 from PIL import Image
 
 from ocr.ocr import ImageReader
@@ -29,11 +28,10 @@ class AnalyzeResult:
     status: Status
 
 
-async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeResult:
+async def analyze_main(image_bytes: bytes, reader: ImageReader) -> AnalyzeResult:
     if settings.dev_mode:
         os.makedirs("ocr_dev", exist_ok=True)
     # 画像取得
-    image_bytes = await attachment.read()
     original_image = Image.open(io.BytesIO(image_bytes))
     if settings.dev_mode:
         original_image.save("./ocr_dev/original_image.png")
@@ -95,10 +93,10 @@ async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeRe
     )
     if settings.dev_mode:
         for i, nr in enumerate(name_results):
-            logging.info(f"name: index: {i}, text: {nr[1]}")
+            logging.info(f"name: index: {i}, text: {nr}")
 
     result = AnalyzeResult(
-        n="".join(name_results),
+        n="".join([nr.text for nr in name_results.root]),
         status=await get_status(cropped_status_image_list, reader),
     )
     if settings.dev_mode:
@@ -108,7 +106,7 @@ async def analyze_main(attachment: Attachment, reader: ImageReader) -> AnalyzeRe
 
 async def read_status_text(
     image_list: list[Image.Image], allowlist: str, reader: ImageReader
-) -> list[list[str]]:
+) -> list[OCRResultList]:
     return [
         await reader.read(
             image=image,
@@ -128,16 +126,14 @@ async def read_status_text(
 
 async def get_status(image_list: list[Image.Image], reader: ImageReader) -> Status:
     # textのみを抽出
-    text_list_list: list[list[str]] = await read_status_text(
-        image_list, "0123456789/%.", reader
-    )
+    results = await read_status_text(image_list, "0123456789/%.", reader)
+    text_list_list = [[r.text for r in result.root] for result in results]
     if settings.dev_mode:
         logging.info(f"text_list_list: {text_list_list}")
     # /が1とかになってる想定で修正する。
     # 1を含めないでテキスト抽出
-    tmp_text_list_list: list[list[str]] = await read_status_text(
-        image_list, "023456789/%.", reader
-    )
+    tmp_results = await read_status_text(image_list, "023456789/%.", reader)
+    tmp_text_list_list = [[r.text for r in result.root] for result in tmp_results]
     if settings.dev_mode:
         logging.info(f"tmp_text_list_list: {tmp_text_list_list}")
     # 返す値のリスト

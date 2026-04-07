@@ -43,7 +43,7 @@ def setup_ark(bot: commands.Bot, reader: ImageReader):
             return
 
         try:
-            resp = await analyze_main(image_attachments[0], reader)
+            resp = await analyze_main(await image_attachments[0].read(), reader)
             await message.channel.send(
                 f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
                 silent=True,
