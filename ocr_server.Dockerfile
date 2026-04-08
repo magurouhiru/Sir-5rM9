@@ -12,6 +12,7 @@ RUN mkdir -p packages/ocr
 
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
+COPY ./packages/api ./packages/api
 COPY ./packages/core ./packages/core
 COPY ./packages/ocr_server/pyproject.toml ./packages/ocr_server/
 

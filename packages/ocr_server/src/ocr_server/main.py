@@ -1,5 +1,5 @@
 import easyocr
-from core import OCRResultList, SearchParams
+from api import OCRResultList, SearchParams
 from fastapi import FastAPI, File, Query, UploadFile
 
 app = FastAPI()

@@ -1,24 +1,29 @@
 import io
-import logging
 import time
+from logging import Logger
 
 from aiohttp import ClientSession, FormData
 from aiohttp.typedefs import LooseHeaders
-from core import OCRResultList, SearchParams, settings
+from api import OCRResultList, SearchParams
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 from PIL import Image
 
-from .ocr import ImageReader
+from core import settings
 
-logger = logging.getLogger(__name__)
+from .ocr import OCR
 
 
-class OcrServerImageReader(ImageReader):
-    def __init__(self, base_url: str):
+class OCRServer(OCR):
+    def __init__(self, logger: Logger):
         super().__init__()
-        self.base_url = base_url
-        logger.info("init: OcrServerImageReader")
+        self.base_url = settings.ocr_server_path
+        self.logger = logger
+        self.logger.info("init: OCRServer with base_url=%s", self.base_url)
+        if self.base_url is None or self.base_url == "":
+            raise ValueError(
+                "OCR server の URL が設定されていません。環境変数 OCR_SERVER_PATH を確認してください。"
+            )
 
     def get_headers(self) -> LooseHeaders:
         if settings.with_gcp_token:

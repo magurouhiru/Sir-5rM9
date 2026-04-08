@@ -12,6 +12,7 @@ RUN mkdir -p packages/bot
 
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
+COPY ./packages/api ./packages/api
 COPY ./packages/core ./packages/core
 COPY ./packages/bot/pyproject.toml ./packages/bot/
 

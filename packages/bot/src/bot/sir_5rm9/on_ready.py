@@ -1,12 +1,10 @@
-import logging
+from logging import Logger
 
 from core import settings
 from discord.ext import commands
 
-logger = logging.getLogger(__name__)
 
-
-def setup_on_ready(bot: commands.Bot):
+def setup_on_ready(bot: commands.Bot, logger: Logger):
 
     @bot.event
     async def on_ready():

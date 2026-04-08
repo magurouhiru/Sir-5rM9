@@ -1,19 +1,15 @@
-import logging
+from logging import Logger
 from typing import List
 
+from core.ark import analyze_main
+from core.ocr import OCR
 from discord import Attachment, Message
 from discord.ext import commands
-
-from ocr.ocr import ImageReader
-
-from .analyzer import analyze_main
-
-logger = logging.getLogger(__name__)
 
 ANALYZE_TARGET_CHANNEL_NAME = "ark-レベル算出"
 
 
-def setup_ark(bot: commands.Bot, reader: ImageReader):
+def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
 
     @bot.event
     async def on_message(message: Message):
@@ -43,9 +39,9 @@ def setup_ark(bot: commands.Bot, reader: ImageReader):
             return
 
         try:
-            resp = await analyze_main(await image_attachments[0].read(), reader)
+            resp = await analyze_main(await image_attachments[0].read(), ocr, logger)
             await message.channel.send(
-                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}",
+                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}{f'&i={resp.status.i}' if resp.status.i is not None else ''}",
                 silent=True,
                 mention_author=True,
             )

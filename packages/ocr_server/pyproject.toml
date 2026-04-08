@@ -5,7 +5,7 @@ description = "OCR 機能を提供するサーバー"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "core",
+    "api",
     "torch",
     "torchvision ",
     "easyocr>=1.7.2",
@@ -16,7 +16,7 @@ dependencies = [
 dev = ["ruff>=0.15.6"]
 
 [tool.uv.sources]
-core = { workspace = true }
+api = { workspace = true }
 torch = { index = "pytorch-cpu" }       # torchだけCPU版サイトを見に行く
 torchvision = { index = "pytorch-cpu" } # torchだけCPU版サイトを見に行く
 

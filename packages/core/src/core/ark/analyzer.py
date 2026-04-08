@@ -1,14 +1,13 @@
 import io
-import logging
 import os
 from dataclasses import dataclass
+from logging import Logger
 
-from core import OCRResultList, SearchParams, settings
+from api import OCRResultList, SearchParams
 from PIL import Image
 
-from ocr.ocr import ImageReader
-
-logger = logging.getLogger(__name__)
+from core import settings
+from core.ocr import OCR
 
 
 @dataclass
@@ -20,6 +19,7 @@ class Status:
     w: float
     m: float
     t: float
+    i: float | None = None
 
 
 @dataclass
@@ -28,7 +28,7 @@ class AnalyzeResult:
     status: Status
 
 
-async def analyze_main(image_bytes: bytes, reader: ImageReader) -> AnalyzeResult:
+async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeResult:
     if settings.dev_mode:
         os.makedirs("ocr_dev", exist_ok=True)
     # 画像取得
@@ -38,7 +38,7 @@ async def analyze_main(image_bytes: bytes, reader: ImageReader) -> AnalyzeResult
 
     # トリミング
     original_width, original_height = original_image.size
-    dw = original_height * 0.15
+    dw = original_height * 0.1523
     crop_box = (
         original_width / 2 - dw,
         original_height * 0.1,
@@ -76,6 +76,8 @@ async def analyze_main(image_bytes: bytes, reader: ImageReader) -> AnalyzeResult
         (gray_width / 2, status_start + dh * 4, gray_width, status_start + dh * 5),
         (gray_width / 2, status_start + dh * 5, gray_width, status_start + dh * 6),
         (gray_width / 2, status_start + dh * 6, gray_width, status_start + dh * 7),
+        (gray_width / 2, status_start + dh * 7, gray_width, status_start + dh * 8),
+        (gray_width / 2, status_start + dh * 8, gray_width, status_start + dh * 9),
     ]
     cropped_status_image_list = [
         final_resized_image.crop(cb) for cb in status_crop_box_list
@@ -87,28 +89,28 @@ async def analyze_main(image_bytes: bytes, reader: ImageReader) -> AnalyzeResult
     # テキスト抽出
     ## 名前
     # name_image = np.array(cropped_name_image)
-    name_results = await reader.read(
+    name_results = await ocr.read(
         image=cropped_name_image,
         params=SearchParams(decoder="beamsearch", beamWidth=5),
     )
     if settings.dev_mode:
         for i, nr in enumerate(name_results):
-            logging.info(f"name: index: {i}, text: {nr}")
+            logger.info(f"name: index: {i}, text: {nr}")
 
     result = AnalyzeResult(
         n="".join([nr.text for nr in name_results.root]),
-        status=await get_status(cropped_status_image_list, reader),
+        status=await get_status(cropped_status_image_list, ocr, logger),
     )
     if settings.dev_mode:
-        logging.info(f"result: {result}")
+        logger.info(f"result: {result}")
     return result
 
 
 async def read_status_text(
-    image_list: list[Image.Image], allowlist: str, reader: ImageReader
+    image_list: list[Image.Image], allowlist: str, ocr: OCR
 ) -> list[OCRResultList]:
     return [
-        await reader.read(
+        await ocr.read(
             image=image,
             params=SearchParams(
                 allowlist=allowlist,
@@ -124,18 +126,64 @@ async def read_status_text(
     ]
 
 
-async def get_status(image_list: list[Image.Image], reader: ImageReader) -> Status:
+async def get_status(image_list: list[Image.Image], ocr: OCR, logger: Logger) -> Status:
     # textのみを抽出
-    results = await read_status_text(image_list, "0123456789/%.", reader)
+    results = await read_status_text(image_list, "0123456789/%.", ocr)
     text_list_list = [[r.text for r in result.root] for result in results]
     if settings.dev_mode:
-        logging.info(f"text_list_list: {text_list_list}")
+        logger.info(f"text_list_list: {text_list_list}")
     # /が1とかになってる想定で修正する。
     # 1を含めないでテキスト抽出
-    tmp_results = await read_status_text(image_list, "023456789/%.", reader)
+    tmp_results = await read_status_text(image_list, "023456789/%.", ocr)
     tmp_text_list_list = [[r.text for r in result.root] for result in tmp_results]
     if settings.dev_mode:
-        logging.info(f"tmp_text_list_list: {tmp_text_list_list}")
+        logger.info(f"tmp_text_list_list: {tmp_text_list_list}")
+
+    if len(text_list_list[0]) == 0:
+        # テイム後でXPがあるときはここに来る想定
+        non_empty_text_list_list = [tl for tl in text_list_list if len(tl) > 0]
+        value_list = adjast_status(
+            non_empty_text_list_list[:-1],
+            [tl for tl in tmp_text_list_list if len(tl) > 0][:-1],
+        )
+        imprint = max(min(float(non_empty_text_list_list[-1][0]), 100), 0)
+    else:
+        value_list = adjast_status(text_list_list, tmp_text_list_list)
+        imprint = None
+
+    if settings.dev_mode:
+        logger.info(f"value_list: {value_list}")
+
+    value_list = [round(float(v), 1) for v in value_list]
+    if len(value_list) >= 7:
+        # 全部のステータスが表示されているときにここへ来る想定
+        return Status(
+            h=value_list[0],
+            s=value_list[1],
+            o=value_list[2],
+            f=value_list[3],
+            w=value_list[4],
+            m=round(value_list[5] / 100, 3),
+            t=value_list[6],
+            i=imprint,
+        )
+    else:
+        # 酸素量がないときにここへ来る想定
+        return Status(
+            h=value_list[0],
+            s=value_list[1],
+            o=0,
+            f=value_list[2],
+            w=value_list[3],
+            m=round(value_list[4] / 100, 3),
+            t=value_list[5],
+            i=imprint,
+        )
+
+
+def adjast_status(
+    text_list_list: list[list[str]], tmp_text_list_list: list[list[str]]
+) -> list[str]:
     # 返す値のリスト
     value_list: list[str] = []
     for i, tl in enumerate(text_list_list):
@@ -169,26 +217,4 @@ async def get_status(image_list: list[Image.Image], reader: ImageReader) -> Stat
             # 上で設定しているので、ここには来ない想定
             continue
         value_list[i] = v[: dotindex + 2]
-
-    if len(value_list) == 7:
-        # 全部のステータスが表示されているときにここへ来る想定
-        return Status(
-            h=float(value_list[0]),
-            s=float(value_list[1]),
-            o=float(value_list[2]),
-            f=float(value_list[3]),
-            w=float(value_list[4]),
-            m=float(value_list[5]) / 100,
-            t=float(value_list[6]),
-        )
-    else:
-        # 酸素量がないときにここへ来る想定
-        return Status(
-            h=float(value_list[0]),
-            s=float(value_list[1]),
-            o=float("0"),
-            f=float(value_list[2]),
-            w=float(value_list[3]),
-            m=float(value_list[4]) / 100,
-            t=float(value_list[5]),
-        )
+    return value_list

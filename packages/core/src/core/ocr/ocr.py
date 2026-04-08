@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
-from core import OCRResultList, SearchParams
+from api import OCRResultList, SearchParams
 from PIL import Image
 
 
-class ImageReader(ABC):
+class OCR(ABC):
     @abstractmethod
     async def read(
         self,
