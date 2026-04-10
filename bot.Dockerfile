@@ -24,6 +24,8 @@ FROM python:3.13-slim AS runner
 
 WORKDIR /app
 
+RUN apt-get update && apt-get upgrade -y
+
 # ビルドステージで作った仮想環境だけをコピー
 COPY --from=builder /app/.venv /app/.venv
 COPY ./packages/bot ./packages/bot
