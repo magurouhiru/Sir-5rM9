@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "./packages/bot"
+		},
+		{
+			"path": "./packages/ocr_server"
+		},
+		{
+			"path": "./packages/api"
+		},
+		{
+			"path": "./packages/core"
+		},
+		{
+			"path": "./packages/dev"
+		}
+	]
+}

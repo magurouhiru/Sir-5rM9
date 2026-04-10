@@ -1,0 +1,58 @@
+name: cicd
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+    - name: Install dependencies
+      run: |
+        pipx install uv
+        uv sync --no-dev
+        pip install ruff
+    - name: Analysing the code with ruff
+      run: |
+        uv run ruff check --output-format=github
+        uv run ruff format --check --output-format=github
+
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    # if: github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v6
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and Push the Docker image for bot
+      env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{ github.repository }}
+      run: |
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_bot:$(date +%Y%m%d) -t ${REGISTRY}/${IMAGE_NAME,,}_bot:latest -f bot.Dockerfile .
+        docker push -a ${REGISTRY}/${IMAGE_NAME,,}_bot
+    - name: Build and Push the Docker image for ocr_server
+      env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{ github.repository }}
+      run: |
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:$(date +%Y%m%d) -t ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:latest -f ocr_server.Dockerfile .
+        docker push -a ${REGISTRY}/${IMAGE_NAME,,}_ocr_server

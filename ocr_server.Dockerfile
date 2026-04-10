@@ -8,16 +8,16 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN mkdir -p packages/bot
+RUN mkdir -p packages/ocr
 
 # 依存関係のみを先にコピー（キャッシュ効率化）
 COPY pyproject.toml uv.lock ./
 COPY ./packages/api ./packages/api
 COPY ./packages/core ./packages/core
-COPY ./packages/bot/pyproject.toml ./packages/bot/
+COPY ./packages/ocr_server/pyproject.toml ./packages/ocr_server/
 
 # 仮想環境 (.venv) を作成し、ライブラリをインストール
-RUN uv sync --no-dev --package bot --no-cache --no-editable
+RUN uv sync --no-dev --package ocr_server --no-cache --frozen --no-editable
 
 # --- Run Stage ---
 FROM python:3.13-slim AS runner
@@ -28,11 +28,13 @@ RUN apt-get update && apt-get upgrade -y
 
 # ビルドステージで作った仮想環境だけをコピー
 COPY --from=builder /app/.venv /app/.venv
-COPY ./packages/bot ./packages/bot
-
+COPY ./packages/ocr_server ./packages/ocr_server
 
 # 仮想環境のパスを優先的に使う設定
 ENV PATH="/app/.venv/bin:$PATH"
 
+# easyocrのモジュールを含める
+RUN python -c "import easyocr; easyocr.Reader([\"ja\"], gpu=False, verbose=False)"
+
 # 実行コマンド（例：main.py を実行）
-ENTRYPOINT ["python", "/app/packages/bot/src/bot/main.py"]
+ENTRYPOINT ["fastapi", "run", "/app/packages/ocr_server/main.py"]

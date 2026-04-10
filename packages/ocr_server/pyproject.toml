@@ -1,0 +1,26 @@
+[project]
+name = "ocr_server"
+version = "0.1.0"
+description = "OCR 機能を提供するサーバー"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "api",
+    "torch",
+    "torchvision ",
+    "easyocr>=1.7.2",
+    "fastapi[standard]>=0.135.2",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.15.6"]
+
+[tool.uv.sources]
+api = { workspace = true }
+torch = { index = "pytorch-cpu" }       # torchだけCPU版サイトを見に行く
+torchvision = { index = "pytorch-cpu" } # torchだけCPU版サイトを見に行く
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
