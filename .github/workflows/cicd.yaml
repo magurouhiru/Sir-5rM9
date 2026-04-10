@@ -47,14 +47,12 @@ jobs:
         REGISTRY: ghcr.io
         IMAGE_NAME: ${{ github.repository }}
       run: |
-        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_bot:$(date +%Y%m%d) -f bot.Dockerfile .
-        docker push ${REGISTRY}/${IMAGE_NAME,,}_bot:$(date +%Y%m%d)
-        docker push ${REGISTRY}/${IMAGE_NAME,,}_bot:latest
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_bot:$(date +%Y%m%d) -t ${REGISTRY}/${IMAGE_NAME,,}_bot:latest -f bot.Dockerfile .
+        docker push -a ${REGISTRY}/${IMAGE_NAME,,}_bot
     - name: Build and Push the Docker image for ocr_server
       env:
         REGISTRY: ghcr.io
         IMAGE_NAME: ${{ github.repository }}
       run: |
-        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:$(date +%Y%m%d) -f ocr_server.Dockerfile .
-        docker push ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:$(date +%Y%m%d)
-        docker push ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:latest
+        docker build -t ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:$(date +%Y%m%d) -t ${REGISTRY}/${IMAGE_NAME,,}_ocr_server:latest -f ocr_server.Dockerfile .
+        docker push -a ${REGISTRY}/${IMAGE_NAME,,}_ocr_server
