@@ -35,4 +35,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN python -c "import easyocr; easyocr.Reader([\"ja\"], gpu=False, verbose=False)"
 
 # 実行コマンド（例：main.py を実行）
-ENTRYPOINT ["fastapi", "run", "/app/packages/ocr_server/src/ocr_server/main.py"]
+ENTRYPOINT ["fastapi", "run", "/app/packages/ocr_server/main.py"]

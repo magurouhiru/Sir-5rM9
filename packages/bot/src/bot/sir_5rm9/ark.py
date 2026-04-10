@@ -28,14 +28,18 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
             return
 
         await message.channel.send("画像解析リクエストを受け取りました。", silent=True)
-        logger.info("画像解析リクエストを受け取りました。")
+        logger.info(
+            "analyze request received. channel: %s, author: %s",
+            message.channel.name,
+            message.author.name,
+        )
 
         image_attachments: List[Attachment] = [
             a for a in message.attachments if a.content_type.startswith("image")
         ]
         if len(image_attachments) <= 0:
             await message.channel.send("画像がないよう～", silent=True)
-            logger.info("画像なしで終了。")
+            logger.info("analyze request rejected: no image attachment.")
             return
 
         try:
@@ -46,7 +50,7 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
                 mention_author=True,
             )
         except Exception as e:
-            logger.exception("画像解析に失敗しました。")
+            logger.exception("analyze failed.")
             await message.channel.send(
                 f"画像解析に失敗しました。{str(e)}",
                 silent=True,

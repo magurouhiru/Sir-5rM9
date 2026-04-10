@@ -8,5 +8,5 @@ def setup_on_ready(bot: commands.Bot, logger: Logger):
 
     @bot.event
     async def on_ready():
-        logger.info("Sir-5rM9 起動！")
+        logger.info("Sir-5rM9 is ready!")
         logger.info(f"settings: {settings.model_dump()}")
