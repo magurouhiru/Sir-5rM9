@@ -6,7 +6,7 @@ from core.ark import analyze_main
 from core.ocr import builder
 from PIL import Image
 
-image_path = "sample2.png"
+image_path = "sample3.jpg"
 
 
 async def main():
