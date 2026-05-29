@@ -5,6 +5,7 @@ from logging import Logger
 
 from api import OCRResultList, SearchParams
 from PIL import Image
+from typing_extensions import Literal
 
 from core import settings
 from core.ocr import OCR
@@ -20,6 +21,7 @@ class Status:
     m: float
     t: float
     i: int | None = None
+    type: Literal["wild", "dom", "bred"]
 
 
 @dataclass
@@ -197,6 +199,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
+                type="wild",
             )
         case "tbno":
             return Status(
@@ -208,6 +211,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[4], ocr),
                 t=await get_status_value(status_value_images[5], ocr),
                 i=None,
+                type="wild",
             )
         case "ta":
             return Status(
@@ -219,6 +223,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=None,
+                type="dom",
             )
         case "tano":
             return Status(
@@ -230,6 +235,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
+                type="dom",
             )
         case "bl":
             return Status(
@@ -241,6 +247,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=await get_status_value_i(status_value_images[8], ocr),
+                type="bred",
             )
         case "blno":
             return Status(
@@ -252,6 +259,7 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=await get_status_value_i(status_value_images[7], ocr),
+                type="bred",
             )
 
 
