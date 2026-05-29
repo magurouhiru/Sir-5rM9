@@ -45,7 +45,7 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
         try:
             resp = await analyze_main(await image_attachments[0].read(), ocr, logger)
             await message.channel.send(
-                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}{f'&i={resp.status.i}' if resp.status.i is not None else ''}",
+                f"https://magurouhiru.github.io/ASB-web/#/ASB-web/calc_level?n={resp.n}&h={resp.status.h}&s={resp.status.s}&o={resp.status.o}&f={resp.status.f}&w={resp.status.w}&m={resp.status.m}&t={resp.status.t}{f'&i={resp.status.i}' if resp.status.i is not None else ''}&type={resp.status.type}",
                 silent=True,
                 mention_author=True,
             )
