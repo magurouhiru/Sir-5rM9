@@ -38,11 +38,12 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
 
     # トリミング
     original_width, original_height = original_image.size
-    dw = original_height * 0.17
+    dl = original_height * 0.1523
+    dr = original_height * 0.17
     crop_box = (
-        original_width / 2 - dw,
+        original_width / 2 - dl,
         original_height * 0.1,
-        original_width / 2 + dw,
+        original_width / 2 + dr,
         original_height * 0.7,
     )
     cropped_image = original_image.crop(crop_box)
@@ -274,6 +275,8 @@ def adjast_status_name_list(status_name_list: list[str]) -> list[str]:
             if (
                 status_name_list[i] == ""
                 or status_name_list[i] == allow_status_name_list[i]
+                or i
+                == 0  # テイム後 or ブリで最初が変な感じになることがあるっぽいので、最初は無視する
             ):
                 continue
             else:
@@ -329,6 +332,7 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
 async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
     # ステータスの値をOCRで読み取る
     result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
+    print(f"i result: {result}")
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
@@ -337,8 +341,12 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
 
     # %を削除
     buf2 = buf1.replace("%", "")
+    buf3 = int(buf2)
+    if buf3 > 199:
+        buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
-    return min(100, int(buf2))
+    print(f"i buf3: {buf3}")
+    return min(100, int(buf3))
 
 
 def add_dot_if_needed(value: str) -> str:
