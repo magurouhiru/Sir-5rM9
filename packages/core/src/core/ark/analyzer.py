@@ -38,11 +38,12 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
 
     # トリミング
     original_width, original_height = original_image.size
-    dw = original_height * 0.17
+    dl = original_height * 0.1523
+    dr = original_height * 0.17
     crop_box = (
-        original_width / 2 - dw,
+        original_width / 2 - dl,
         original_height * 0.1,
-        original_width / 2 + dw,
+        original_width / 2 + dr,
         original_height * 0.7,
     )
     cropped_image = original_image.crop(crop_box)
@@ -274,6 +275,8 @@ def adjast_status_name_list(status_name_list: list[str]) -> list[str]:
             if (
                 status_name_list[i] == ""
                 or status_name_list[i] == allow_status_name_list[i]
+                or i
+                == 0  # テイム後 or ブリで最初が変な感じになることがあるっぽいので、最初は無視する
             ):
                 continue
             else:
