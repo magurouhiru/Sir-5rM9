@@ -19,7 +19,7 @@ class Status:
     w: float
     m: float
     t: float
-    i: float | None = None
+    i: int | None = None
 
 
 @dataclass
@@ -38,7 +38,7 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
 
     # トリミング
     original_width, original_height = original_image.size
-    dw = original_height * 0.1523
+    dw = original_height * 0.17
     crop_box = (
         original_width / 2 - dw,
         original_height * 0.1,
@@ -144,7 +144,7 @@ async def read_status_name_text(image: Image.Image, ocr: OCR) -> str:
     for key, value in status_name_dict.items():
         result = await ocr.read(
             image=image,
-            params=SearchParams(allowlist=value),
+            params=SearchParams(allowlist=value, decoder="beamsearch", beamWidth=5),
         )
         if (
             len(result.root) > 0
@@ -184,8 +184,6 @@ async def get_status(
     status_name_list = [
         await read_status_name_text(image, ocr) for image in status_name_images
     ]
-    print(status_name_list)
-    print(adjast_status_name_list(status_name_list))
     status_type = adjast_status_name_list(status_name_list)
     match status_type:
         case "tb":
@@ -258,11 +256,11 @@ async def get_status(
 
 allow_status_name_list_dict = {
     "tb": ["h", "s", "o", "f", "w", "m", "t", "", ""],  # テイム前
-    "tbno": ["h", "s", "f", "w", "m", "t", "", "", ""],  # テイム前かつつ酸素量なし
+    "tbno": ["h", "s", "f", "w", "m", "t", "", "", ""],  # テイム前かつ酸素量なし
     "ta": ["", "h", "s", "o", "f", "w", "m", "t", ""],  # テイム後
-    "tano": ["", "h", "s", "f", "w", "m", "t", "", ""],  # テイム後かつつ酸素量なし
+    "tano": ["", "h", "s", "f", "w", "m", "t", "", ""],  # テイム後かつ酸素量なし
     "bl": ["", "h", "s", "o", "f", "w", "m", "t", "i"],  # ブリ
-    "blno": ["", "h", "s", "f", "w", "m", "t", "i", ""],  # ブリかつつ酸素量なし
+    "blno": ["", "h", "s", "f", "w", "m", "t", "i", ""],  # ブリかつ酸素量なし
 }
 
 
@@ -328,27 +326,19 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
     return round(float(buf3) / 100.0, 3)
 
 
-async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
+async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
     # ステータスの値をOCRで読み取る
-    result = await read_status_value_text(image, allowlist="0123456789./", ocr=ocr)
+    result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
-    elif len(result.root) == 1:
-        # /が1とかになってつながってるやつがここへ来る想定
-        tmp_result = await read_status_value_text(
-            image, allowlist="023456789./", ocr=ocr
-        )
-        index = tmp_result.root[0].text.find("/")
-        buf1 = result.root[0].text[index + 1 :]
     else:
-        # うまく/で開業していたらここへ来る想定
-        buf1 = result.root[1].text
+        buf1 = result.root[0].text
 
-    # 念のため/を削除
-    buf2 = buf1.replace("/", "")
+    # %を削除
+    buf2 = buf1.replace("%", "")
 
-    return round(float(buf2), 0)
+    return min(100, int(buf2))
 
 
 def add_dot_if_needed(value: str) -> str:
@@ -356,42 +346,3 @@ def add_dot_if_needed(value: str) -> str:
     if value.find(".") < 0:
         value = value[:-1] + "." + value[-1:]
     return value
-
-
-def adjast_status(
-    text_list_list: list[list[str]], tmp_text_list_list: list[list[str]]
-) -> list[str]:
-    # 返す値のリスト
-    value_list: list[str] = []
-    for i, tl in enumerate(text_list_list):
-        if len(tl) == 0:
-            # 酸素量がなくて余るときにここへ来る想定
-            continue
-        elif len(tl) == 1:
-            # 近接攻撃力と/が1とかになってつながってるやつがここへ来る想定
-            index = tmp_text_list_list[i][0].find("/")
-            if index < 0:
-                # /がなければ1個目のやつを入れる
-                # 多分近接攻撃力だけのはず
-                value_list.append(tl[0])
-            else:
-                # /の位置以降のやつを入れる
-                value_list.append(tl[0][index + 1 :])
-        else:
-            # うまく/で開業していたらここへ来る想定
-            value_list.append(tl[1])
-
-    # /と%を削除
-    value_list: list[str] = [v.replace("/", "").replace("%", "") for v in value_list]
-    # .がなければ追加
-    value_list: list[str] = [
-        v if v.find(".") > 0 else v[:-1] + "." + v[-1:] for v in value_list
-    ]
-    # .の右隣りまで
-    for i, v in enumerate(value_list):
-        dotindex = v.find(".")
-        if dotindex < 0:
-            # 上で設定しているので、ここには来ない想定
-            continue
-        value_list[i] = v[: dotindex + 2]
-    return value_list

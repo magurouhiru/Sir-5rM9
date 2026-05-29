@@ -7,9 +7,9 @@ from core.ocr import builder
 from PIL import Image
 
 # image_path = "sample.png"  # tb:テイム前
-image_path = "sample2.png"  # bl:ブリ
-# image_path = "sample3.jpg"
-# image_path = "sample4.png"
+# image_path = "sample2.png"  # bl:ブリ
+# image_path = "sample3.jpg"  # tano:テイム後かつ酸素量なし
+image_path = "sample4.png"  # bl:ブリ
 
 
 async def main():
