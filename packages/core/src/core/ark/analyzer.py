@@ -19,7 +19,7 @@ class Status:
     w: float
     m: float
     t: float
-    i: float | None = None
+    i: int | None = None
 
 
 @dataclass
@@ -38,7 +38,7 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
 
     # トリミング
     original_width, original_height = original_image.size
-    dw = original_height * 0.1523
+    dw = original_height * 0.17
     crop_box = (
         original_width / 2 - dw,
         original_height * 0.1,
@@ -68,22 +68,40 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
     ## ステータス
     status_start = gray_height * 0.53
     dh = gray_height * 0.053
-    status_crop_box_list = [
-        (gray_width / 2, status_start + dh * 0, gray_width, status_start + dh * 1),
-        (gray_width / 2, status_start + dh * 1, gray_width, status_start + dh * 2),
-        (gray_width / 2, status_start + dh * 2, gray_width, status_start + dh * 3),
-        (gray_width / 2, status_start + dh * 3, gray_width, status_start + dh * 4),
-        (gray_width / 2, status_start + dh * 4, gray_width, status_start + dh * 5),
-        (gray_width / 2, status_start + dh * 5, gray_width, status_start + dh * 6),
-        (gray_width / 2, status_start + dh * 6, gray_width, status_start + dh * 7),
-        (gray_width / 2, status_start + dh * 7, gray_width, status_start + dh * 8),
-        (gray_width / 2, status_start + dh * 8, gray_width, status_start + dh * 9),
+    split = 1 / 3
+    status_name_crop_box_list = [
+        (0, status_start + dh * 0, gray_width * split, status_start + dh * 1),
+        (0, status_start + dh * 1, gray_width * split, status_start + dh * 2),
+        (0, status_start + dh * 2, gray_width * split, status_start + dh * 3),
+        (0, status_start + dh * 3, gray_width * split, status_start + dh * 4),
+        (0, status_start + dh * 4, gray_width * split, status_start + dh * 5),
+        (0, status_start + dh * 5, gray_width * split, status_start + dh * 6),
+        (0, status_start + dh * 6, gray_width * split, status_start + dh * 7),
+        (0, status_start + dh * 7, gray_width * split, status_start + dh * 8),
+        (0, status_start + dh * 8, gray_width * split, status_start + dh * 9),
     ]
-    cropped_status_image_list = [
-        final_resized_image.crop(cb) for cb in status_crop_box_list
+    status_value_crop_box_list = [
+        (gray_width * split, status_start + dh * 0, gray_width, status_start + dh * 1),
+        (gray_width * split, status_start + dh * 1, gray_width, status_start + dh * 2),
+        (gray_width * split, status_start + dh * 2, gray_width, status_start + dh * 3),
+        (gray_width * split, status_start + dh * 3, gray_width, status_start + dh * 4),
+        (gray_width * split, status_start + dh * 4, gray_width, status_start + dh * 5),
+        (gray_width * split, status_start + dh * 5, gray_width, status_start + dh * 6),
+        (gray_width * split, status_start + dh * 6, gray_width, status_start + dh * 7),
+        (gray_width * split, status_start + dh * 7, gray_width, status_start + dh * 8),
+        (gray_width * split, status_start + dh * 8, gray_width, status_start + dh * 9),
+    ]
+    cropped_status_name_image_list = [
+        final_resized_image.crop(cb) for cb in status_name_crop_box_list
+    ]
+    cropped_status_value_image_list = [
+        final_resized_image.crop(cb) for cb in status_value_crop_box_list
     ]
     if settings.dev_mode:
-        for i, image in enumerate(cropped_status_image_list):
+        for i, image in enumerate(cropped_status_name_image_list):
+            image.save(f"./ocr_dev/cropped_status_name_image_{i}.png")
+    if settings.dev_mode:
+        for i, image in enumerate(cropped_status_value_image_list):
             image.save(f"./ocr_dev/cropped_status_image_{i}.png")
 
     # テキスト抽出
@@ -99,122 +117,232 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
 
     result = AnalyzeResult(
         n="".join([nr.text for nr in name_results.root]),
-        status=await get_status(cropped_status_image_list, ocr, logger),
+        status=await get_status(
+            cropped_status_name_image_list, cropped_status_value_image_list, ocr, logger
+        ),
     )
     if settings.dev_mode:
         logger.info(f"result: {result}")
     return result
 
 
-async def read_status_text(
-    image_list: list[Image.Image], allowlist: str, ocr: OCR
-) -> list[OCRResultList]:
-    return [
-        await ocr.read(
+status_name_dict = {
+    "h": "体力",
+    "s": "スタミナ",
+    "o": "酸素量",
+    "f": "食料",
+    "w": "重量",
+    "m": "近接攻撃力",
+    "t": "気絶値",
+    "i": "刷り込み中",
+}
+
+
+async def read_status_name_text(image: Image.Image, ocr: OCR) -> str:
+    text = ""
+    max_confidence = 0.0
+    for key, value in status_name_dict.items():
+        result = await ocr.read(
             image=image,
-            params=SearchParams(
-                allowlist=allowlist,
-                mag_ratio=1.5,
-                contrast_ths=0.05,
-                adjust_contrast=0.9,
-                text_threshold=0.5,
-                low_text=0.2,
-                link_threshold=0.3,
-            ),
+            params=SearchParams(allowlist=value, decoder="beamsearch", beamWidth=5),
         )
-        for image in image_list
+        if (
+            len(result.root) > 0
+            and result.root[0].text == value
+            and result.root[0].confidence > max_confidence
+        ):
+            text = key
+            max_confidence = result.root[0].confidence
+    return text
+
+
+async def read_status_value_text(
+    image: Image.Image, allowlist: str, ocr: OCR
+) -> OCRResultList:
+    result = await ocr.read(
+        image=image,
+        params=SearchParams(
+            allowlist=allowlist,
+            mag_ratio=1.5,
+            contrast_ths=0.05,
+            adjust_contrast=0.9,
+            text_threshold=0.5,
+            low_text=0.2,
+            link_threshold=0.3,
+        ),
+    )
+    return result
+
+
+async def get_status(
+    status_name_images: list[Image.Image],
+    status_value_images: list[Image.Image],
+    ocr: OCR,
+    logger: Logger,
+) -> Status:
+    # ステータスの名前をOCRで読み取る
+    status_name_list = [
+        await read_status_name_text(image, ocr) for image in status_name_images
     ]
+    status_type = adjast_status_name_list(status_name_list)
+    match status_type:
+        case "tb":
+            return Status(
+                h=await get_status_value(status_value_images[0], ocr),
+                s=await get_status_value(status_value_images[1], ocr),
+                o=await get_status_value(status_value_images[2], ocr),
+                f=await get_status_value(status_value_images[3], ocr),
+                w=await get_status_value(status_value_images[4], ocr),
+                m=await get_status_value_m(status_value_images[5], ocr),
+                t=await get_status_value(status_value_images[6], ocr),
+                i=None,
+            )
+        case "tbno":
+            return Status(
+                h=await get_status_value(status_value_images[0], ocr),
+                s=await get_status_value(status_value_images[1], ocr),
+                o=0.0,
+                f=await get_status_value(status_value_images[2], ocr),
+                w=await get_status_value(status_value_images[3], ocr),
+                m=await get_status_value_m(status_value_images[4], ocr),
+                t=await get_status_value(status_value_images[5], ocr),
+                i=None,
+            )
+        case "ta":
+            return Status(
+                h=await get_status_value(status_value_images[1], ocr),
+                s=await get_status_value(status_value_images[2], ocr),
+                o=await get_status_value(status_value_images[3], ocr),
+                f=await get_status_value(status_value_images[4], ocr),
+                w=await get_status_value(status_value_images[5], ocr),
+                m=await get_status_value_m(status_value_images[6], ocr),
+                t=await get_status_value(status_value_images[7], ocr),
+                i=None,
+            )
+        case "tano":
+            return Status(
+                h=await get_status_value(status_value_images[1], ocr),
+                s=await get_status_value(status_value_images[2], ocr),
+                o=0.0,
+                f=await get_status_value(status_value_images[3], ocr),
+                w=await get_status_value(status_value_images[4], ocr),
+                m=await get_status_value_m(status_value_images[5], ocr),
+                t=await get_status_value(status_value_images[6], ocr),
+                i=None,
+            )
+        case "bl":
+            return Status(
+                h=await get_status_value(status_value_images[1], ocr),
+                s=await get_status_value(status_value_images[2], ocr),
+                o=await get_status_value(status_value_images[3], ocr),
+                f=await get_status_value(status_value_images[4], ocr),
+                w=await get_status_value(status_value_images[5], ocr),
+                m=await get_status_value_m(status_value_images[6], ocr),
+                t=await get_status_value(status_value_images[7], ocr),
+                i=await get_status_value_i(status_value_images[8], ocr),
+            )
+        case "blno":
+            return Status(
+                h=await get_status_value(status_value_images[1], ocr),
+                s=await get_status_value(status_value_images[2], ocr),
+                o=0.0,
+                f=await get_status_value(status_value_images[3], ocr),
+                w=await get_status_value(status_value_images[4], ocr),
+                m=await get_status_value_m(status_value_images[5], ocr),
+                t=await get_status_value(status_value_images[6], ocr),
+                i=await get_status_value_i(status_value_images[7], ocr),
+            )
 
 
-async def get_status(image_list: list[Image.Image], ocr: OCR, logger: Logger) -> Status:
-    # textのみを抽出
-    results = await read_status_text(image_list, "0123456789/%.", ocr)
-    text_list_list = [[r.text for r in result.root] for result in results]
-    if settings.dev_mode:
-        logger.info(f"text_list_list: {text_list_list}")
-    # /が1とかになってる想定で修正する。
-    # 1を含めないでテキスト抽出
-    tmp_results = await read_status_text(image_list, "023456789/%.", ocr)
-    tmp_text_list_list = [[r.text for r in result.root] for result in tmp_results]
-    if settings.dev_mode:
-        logger.info(f"tmp_text_list_list: {tmp_text_list_list}")
-
-    if len(text_list_list[0]) == 0:
-        # テイム後でXPがあるときはここに来る想定
-        non_empty_text_list_list = [tl for tl in text_list_list if len(tl) > 0]
-        value_list = adjast_status(
-            non_empty_text_list_list[:-1],
-            [tl for tl in tmp_text_list_list if len(tl) > 0][:-1],
-        )
-        imprint = max(min(float(non_empty_text_list_list[-1][0]), 100), 0)
-    else:
-        value_list = adjast_status(text_list_list, tmp_text_list_list)
-        imprint = None
-
-    if settings.dev_mode:
-        logger.info(f"value_list: {value_list}")
-
-    value_list = [round(float(v), 1) for v in value_list]
-    if len(value_list) >= 7:
-        # 全部のステータスが表示されているときにここへ来る想定
-        return Status(
-            h=value_list[0],
-            s=value_list[1],
-            o=value_list[2],
-            f=value_list[3],
-            w=value_list[4],
-            m=round(value_list[5] / 100, 3),
-            t=value_list[6],
-            i=imprint,
-        )
-    else:
-        # 酸素量がないときにここへ来る想定
-        return Status(
-            h=value_list[0],
-            s=value_list[1],
-            o=0,
-            f=value_list[2],
-            w=value_list[3],
-            m=round(value_list[4] / 100, 3),
-            t=value_list[5],
-            i=imprint,
-        )
+allow_status_name_list_dict = {
+    "tb": ["h", "s", "o", "f", "w", "m", "t", "", ""],  # テイム前
+    "tbno": ["h", "s", "f", "w", "m", "t", "", "", ""],  # テイム前かつ酸素量なし
+    "ta": ["", "h", "s", "o", "f", "w", "m", "t", ""],  # テイム後
+    "tano": ["", "h", "s", "f", "w", "m", "t", "", ""],  # テイム後かつ酸素量なし
+    "bl": ["", "h", "s", "o", "f", "w", "m", "t", "i"],  # ブリ
+    "blno": ["", "h", "s", "f", "w", "m", "t", "i", ""],  # ブリかつ酸素量なし
+}
 
 
-def adjast_status(
-    text_list_list: list[list[str]], tmp_text_list_list: list[list[str]]
-) -> list[str]:
-    # 返す値のリスト
-    value_list: list[str] = []
-    for i, tl in enumerate(text_list_list):
-        if len(tl) == 0:
-            # 酸素量がなくて余るときにここへ来る想定
-            continue
-        elif len(tl) == 1:
-            # 近接攻撃力と/が1とかになってつながってるやつがここへ来る想定
-            index = tmp_text_list_list[i][0].find("/")
-            if index < 0:
-                # /がなければ1個目のやつを入れる
-                # 多分近接攻撃力だけのはず
-                value_list.append(tl[0])
+def adjast_status_name_list(status_name_list: list[str]) -> list[str]:
+    # ステータスの名前のリストを、status_name_dictのkeyのリストに変換する
+    # 変換できないものは空文字にする
+    for type, allow_status_name_list in allow_status_name_list_dict.items():
+        flag = True
+        for i in range(len(allow_status_name_list)):
+            # 空文字か同じならOK
+            if (
+                status_name_list[i] == ""
+                or status_name_list[i] == allow_status_name_list[i]
+            ):
+                continue
             else:
-                # /の位置以降のやつを入れる
-                value_list.append(tl[0][index + 1 :])
-        else:
-            # うまく/で開業していたらここへ来る想定
-            value_list.append(tl[1])
+                flag = False
+                break
+        if flag:
+            return type
+    raise ValueError(
+        f"酸素のあるなしはOKだけど、それ以外に足りないやつがある or そもそも読み取れないので解析できないぽ。status_name_list: {status_name_list}"
+    )
 
-    # /と%を削除
-    value_list: list[str] = [v.replace("/", "").replace("%", "") for v in value_list]
-    # .がなければ追加
-    value_list: list[str] = [
-        v if v.find(".") > 0 else v[:-1] + "." + v[-1:] for v in value_list
-    ]
-    # .の右隣りまで
-    for i, v in enumerate(value_list):
-        dotindex = v.find(".")
-        if dotindex < 0:
-            # 上で設定しているので、ここには来ない想定
-            continue
-        value_list[i] = v[: dotindex + 2]
-    return value_list
+
+async def get_status_value(image: Image.Image, ocr: OCR) -> float:
+    # ステータスの値をOCRで読み取る
+    result = await read_status_value_text(image, allowlist="0123456789./", ocr=ocr)
+    buf1 = ""
+    if len(result.root) == 0:
+        raise ValueError("ステータスの値が読み取れないぽ")
+    elif len(result.root) == 1:
+        # /が1とかになってつながってるやつがここへ来る想定
+        tmp_result = await read_status_value_text(
+            image, allowlist="023456789./", ocr=ocr
+        )
+        index = tmp_result.root[0].text.find("/")
+        buf1 = result.root[0].text[index + 1 :]
+    else:
+        # うまく/で開業していたらここへ来る想定
+        buf1 = result.root[1].text
+
+    # 念のため/を削除
+    buf2 = buf1.replace("/", "")
+    buf3 = add_dot_if_needed(buf2)
+
+    return round(float(buf3), 1)
+
+
+async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
+    # ステータスの値をOCRで読み取る
+    result = await read_status_value_text(image, allowlist="0123456789.%", ocr=ocr)
+    buf1 = ""
+    if len(result.root) == 0:
+        raise ValueError("ステータスの値が読み取れないぽ")
+    else:
+        buf1 = result.root[0].text
+
+    # %を削除
+    buf2 = buf1.replace("%", "")
+    buf3 = add_dot_if_needed(buf2)
+
+    return round(float(buf3) / 100.0, 3)
+
+
+async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
+    # ステータスの値をOCRで読み取る
+    result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
+    buf1 = ""
+    if len(result.root) == 0:
+        raise ValueError("ステータスの値が読み取れないぽ")
+    else:
+        buf1 = result.root[0].text
+
+    # %を削除
+    buf2 = buf1.replace("%", "")
+
+    return min(100, int(buf2))
+
+
+def add_dot_if_needed(value: str) -> str:
+    # .がなければ追加(.が読み取れない場合を想定)
+    if value.find(".") < 0:
+        value = value[:-1] + "." + value[-1:]
+    return value
