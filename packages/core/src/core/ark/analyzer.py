@@ -5,6 +5,7 @@ from logging import Logger
 
 from api import OCRResultList, SearchParams
 from PIL import Image
+from typing_extensions import Literal
 
 from core import settings
 from core.ocr import OCR
@@ -12,6 +13,7 @@ from core.ocr import OCR
 
 @dataclass
 class Status:
+    type: Literal["wild", "dom", "bred"]
     h: float
     s: float
     o: float
@@ -189,6 +191,7 @@ async def get_status(
     match status_type:
         case "tb":
             return Status(
+                type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
                 s=await get_status_value(status_value_images[1], ocr),
                 o=await get_status_value(status_value_images[2], ocr),
@@ -200,6 +203,7 @@ async def get_status(
             )
         case "tbno":
             return Status(
+                type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
                 s=await get_status_value(status_value_images[1], ocr),
                 o=0.0,
@@ -211,6 +215,7 @@ async def get_status(
             )
         case "ta":
             return Status(
+                type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=await get_status_value(status_value_images[3], ocr),
@@ -222,6 +227,7 @@ async def get_status(
             )
         case "tano":
             return Status(
+                type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=0.0,
@@ -233,6 +239,7 @@ async def get_status(
             )
         case "bl":
             return Status(
+                type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=await get_status_value(status_value_images[3], ocr),
@@ -244,6 +251,7 @@ async def get_status(
             )
         case "blno":
             return Status(
+                type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=0.0,
