@@ -340,8 +340,11 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
 
     # %を削除
     buf2 = buf1.replace("%", "")
+    buf3 = int(buf2)
+    if buf3 > 199:
+        return buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
-    return min(100, int(buf2))
+    return min(100, int(buf3))
 
 
 def add_dot_if_needed(value: str) -> str:
