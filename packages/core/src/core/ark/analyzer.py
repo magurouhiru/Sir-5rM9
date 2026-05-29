@@ -332,6 +332,7 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
 async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
     # ステータスの値をOCRで読み取る
     result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
+    print(f"i result: {result}")
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
@@ -342,8 +343,9 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
     buf2 = buf1.replace("%", "")
     buf3 = int(buf2)
     if buf3 > 199:
-        return buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
+        buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
+    print(f"i buf3: {buf3}")
     return min(100, int(buf3))
 
 
