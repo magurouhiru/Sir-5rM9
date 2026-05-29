@@ -13,6 +13,7 @@ from core.ocr import OCR
 
 @dataclass
 class Status:
+    type: Literal["wild", "dom", "bred"]
     h: float
     s: float
     o: float
@@ -21,7 +22,6 @@ class Status:
     m: float
     t: float
     i: int | None = None
-    type: Literal["wild", "dom", "bred"]
 
 
 @dataclass
@@ -191,6 +191,7 @@ async def get_status(
     match status_type:
         case "tb":
             return Status(
+                type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
                 s=await get_status_value(status_value_images[1], ocr),
                 o=await get_status_value(status_value_images[2], ocr),
@@ -199,10 +200,10 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
-                type="wild",
             )
         case "tbno":
             return Status(
+                type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
                 s=await get_status_value(status_value_images[1], ocr),
                 o=0.0,
@@ -211,10 +212,10 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[4], ocr),
                 t=await get_status_value(status_value_images[5], ocr),
                 i=None,
-                type="wild",
             )
         case "ta":
             return Status(
+                type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=await get_status_value(status_value_images[3], ocr),
@@ -223,10 +224,10 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=None,
-                type="dom",
             )
         case "tano":
             return Status(
+                type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=0.0,
@@ -235,10 +236,10 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
-                type="dom",
             )
         case "bl":
             return Status(
+                type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=await get_status_value(status_value_images[3], ocr),
@@ -247,10 +248,10 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=await get_status_value_i(status_value_images[8], ocr),
-                type="bred",
             )
         case "blno":
             return Status(
+                type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
                 s=await get_status_value(status_value_images[2], ocr),
                 o=0.0,
@@ -259,7 +260,6 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=await get_status_value_i(status_value_images[7], ocr),
-                type="bred",
             )
 
 
