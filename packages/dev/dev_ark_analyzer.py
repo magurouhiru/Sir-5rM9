@@ -8,9 +8,9 @@ from PIL import Image
 
 # image_path = "sample.png"  # tb:テイム前
 # image_path = "sample2.png"  # bl:ブリ
-# image_path = "sample3.jpg"  # tano:テイム後かつ酸素量なし
+image_path = "sample3.jpg"  # tano:テイム後かつ酸素量なし
 # image_path = "sample4.png"  # bl:ブリ
-image_path = "sample5.png"  # tbno:テイム前かつ酸素量なし
+# image_path = "sample5.png"  # tbno:テイム前かつ酸素量なし
 
 
 async def main():
