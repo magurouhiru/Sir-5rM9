@@ -21,7 +21,7 @@ class Status:
     w: float
     m: float
     t: float
-    i: int | None = None
+    i: float | None = None
 
 
 @dataclass
@@ -337,7 +337,7 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
     return round(float(buf3) / 100.0, 3)
 
 
-async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
+async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
     # ステータスの値をOCRで読み取る
     result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
     print(f"i result: {result}")
@@ -354,7 +354,7 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> int:
         buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
     print(f"i buf3: {buf3}")
-    return min(100, int(buf3))
+    return min(100, int(buf3)) / 100.0  # 100%を1.0として扱う
 
 
 def add_dot_if_needed(value: str) -> str:
