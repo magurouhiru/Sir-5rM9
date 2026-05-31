@@ -129,10 +129,14 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
     return result
 
 
+delete_str_list = [" ", "　"]
+
+
 def adjast_name(result: OCRResultList) -> str:
     # 名前のOCR結果を、アルファベットとスペース以外を削除して結合する
     name = "".join([r.text for r in result.root])
-    name = "".join([c for c in name if c.isalpha() or c.isspace()])
+    for delete_str in delete_str_list:
+        name = name.replace(delete_str, "")
     return name.strip()
 
 
