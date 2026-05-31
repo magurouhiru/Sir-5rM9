@@ -119,7 +119,7 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
             logger.info(f"name: index: {i}, text: {nr}")
 
     result = AnalyzeResult(
-        n="".join([nr.text for nr in name_results.root]),
+        n=adjast_name(name_results),
         status=await get_status(
             cropped_status_name_image_list, cropped_status_value_image_list, ocr, logger
         ),
@@ -127,6 +127,17 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
     if settings.dev_mode:
         logger.info(f"result: {result}")
     return result
+
+
+# クエリパラメータにスペースが入ることがあるので、それを削除するためのリスト
+delete_str_list = [" ", "　"]
+
+
+def adjast_name(result: OCRResultList) -> str:
+    name = "".join([r.text for r in result.root])
+    for delete_str in delete_str_list:
+        name = name.replace(delete_str, "")
+    return name.strip()
 
 
 status_name_dict = {
