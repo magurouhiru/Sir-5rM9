@@ -354,7 +354,7 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
         buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
     print(f"i buf3: {buf3}")
-    return min(100, int(buf3)) // 100.0  # 100%を1.0として扱う
+    return min(100, int(buf3)) / 100.0  # 100%を1.0として扱う
 
 
 def add_dot_if_needed(value: str) -> str:
