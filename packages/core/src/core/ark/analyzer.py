@@ -335,6 +335,7 @@ async def get_status_value(image: Image.Image, ocr: OCR) -> float:
 async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
     # ステータスの値をOCRで読み取る
     result = await read_status_value_text(image, allowlist="0123456789.%", ocr=ocr)
+    print(result)
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
