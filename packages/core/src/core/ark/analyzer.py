@@ -338,8 +338,17 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
-    else:
+    elif len(result.root) == 1:
         buf1 = result.root[0].text
+    else:
+        # 複数あることがあるっぽいの%を含んでいる方か長い方にする。
+        has_parcent = [r.text for r in result.root if "%" in r.text]
+        if len(has_parcent) > 0:
+            buf1 = has_parcent[0]
+        else:
+            for r in result.root:
+                if len(r.text) > len(buf1):
+                    buf1 = r.text
 
     # %を削除
     buf2 = buf1.replace("%", "")
@@ -351,12 +360,20 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
 async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
     # ステータスの値をOCRで読み取る
     result = await read_status_value_text(image, allowlist="0123456789%", ocr=ocr)
-    print(f"i result: {result}")
     buf1 = ""
     if len(result.root) == 0:
         raise ValueError("ステータスの値が読み取れないぽ")
-    else:
+    elif len(result.root) == 1:
         buf1 = result.root[0].text
+    else:
+        # 複数あることがあるっぽいの%を含んでいる方か長い方にする。
+        has_parcent = [r.text for r in result.root if "%" in r.text]
+        if len(has_parcent) > 0:
+            buf1 = has_parcent[0]
+        else:
+            for r in result.root:
+                if len(r.text) > len(buf1):
+                    buf1 = r.text
 
     # %を削除
     buf2 = buf1.replace("%", "")
@@ -364,7 +381,6 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
     if buf3 > 199:
         buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
-    print(f"i buf3: {buf3}")
     return min(100, int(buf3)) / 100.0  # 100%を1.0として扱う
 
 

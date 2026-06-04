@@ -105,11 +105,102 @@ sample_list = [
             i=0.5,
         ),
     },
+    {
+        "name": "sample7 TEKステゴサウルス (bl:ブリ) ",
+        "path": "sample7.png",
+        "status": Status(
+            type="bred",
+            h=7644.1,
+            s=1650.0,
+            o=570.0,
+            f=38880.0,
+            w=1176.0,
+            m=3.751,
+            t=9276.5,
+            i=1,
+        ),
+    },
+    {
+        "name": "sample8 アロサウルス (ta:テイム後) ",
+        "path": "sample8.png",
+        "status": Status(
+            type="dom",
+            h=4536.1,
+            s=1500.0,
+            o=645.0,
+            f=18630.0,
+            w=630.8,
+            m=4.022,
+            t=15280.5,
+            i=None,
+        ),
+    },
+    {
+        "name": "sample9 ギガントラプトル (bl:ブリ) ",
+        "path": "sample9.png",
+        "status": Status(
+            type="bred",
+            h=5082.1,
+            s=1925.0,
+            o=450.0,
+            f=14490.0,
+            w=595.2,
+            m=3.904,
+            t=13091.5,
+            i=0,
+        ),
+    },
+    {
+        "name": "sample10 カマキリ (bl:ブリ) ",
+        "path": "sample10.png",
+        "status": Status(
+            type="bred",
+            h=2838.1,
+            s=975.0,
+            o=690.0,
+            f=5616.0,
+            w=491.0,
+            m=3.222,
+            t=7048.1,
+            i=1,
+        ),
+    },
+    {
+        "name": "sample11 カルカロドントサウルス (bl:ブリ) ",
+        "path": "sample11.png",
+        "status": Status(
+            type="bred",
+            h=31948.8,
+            s=598.1,
+            o=160.9,
+            f=5268.0,
+            w=1310.4,
+            m=2.5,
+            t=96624.0,
+            i=1,
+        ),
+    },
+    {
+        "name": "sample12 TEKギガノトサウルス (bl:ブリ) ",
+        "path": "sample12.png",
+        "status": Status(
+            type="bred",
+            h=18840.0,
+            s=409.8,
+            o=169.9,
+            f=4440.0,
+            w=1001.0,
+            m=2.35,
+            t=176800.0,
+            i=0,
+        ),
+    },
 ]
 
 
 async def main():
     for sample in sample_list:
+        print("----------------------------------------------------")
         result = await test(sample["path"])
         compere = compere_status(result.status, sample["status"])
         if compere is not None:
