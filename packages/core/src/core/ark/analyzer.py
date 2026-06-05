@@ -22,6 +22,7 @@ class Status:
     m: float
     t: float
     i: float | None = None
+    level: int | None = None
 
 
 @dataclass
@@ -68,6 +69,16 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
     cropped_name_image = final_resized_image.crop(name_crop_box)
     if settings.dev_mode:
         cropped_name_image.save("./ocr_dev/cropped_name_image.png")
+    ## レベル
+    level_crop_box = (
+        gray_width * 0.3,
+        gray_height * 0.16,
+        gray_width * 0.7,
+        gray_height * 0.195,
+    )
+    cropped_level_image = final_resized_image.crop(level_crop_box)
+    if settings.dev_mode:
+        cropped_level_image.save("./ocr_dev/cropped_level_image.png")
     ## ステータス
     status_start = gray_height * 0.53
     dh = gray_height * 0.053
@@ -121,7 +132,11 @@ async def analyze_main(image_bytes: bytes, ocr: OCR, logger: Logger) -> AnalyzeR
     result = AnalyzeResult(
         n=adjast_name(name_results),
         status=await get_status(
-            cropped_status_name_image_list, cropped_status_value_image_list, ocr, logger
+            cropped_status_name_image_list,
+            cropped_status_value_image_list,
+            cropped_level_image,
+            ocr,
+            logger,
         ),
     )
     if settings.dev_mode:
@@ -138,6 +153,25 @@ def adjast_name(result: OCRResultList) -> str:
     for delete_str in delete_str_list:
         name = name.replace(delete_str, "")
     return name.strip()
+
+
+async def read_level_value_text(
+    image: Image.Image, allowlist: str, ocr: OCR
+) -> OCRResultList:
+    result = await ocr.read(
+        image=image,
+        params=SearchParams(allowlist=allowlist, decoder="beamsearch", beamWidth=5),
+    )
+    return result
+
+
+async def get_level(image: Image.Image, ocr: OCR) -> int:
+    level_resutl_list = await read_level_value_text(image, "レベル:0123456789", ocr)
+    level_text_list = [
+        r.text.replace("レ", "").replace("ベ", "").replace("ル", "").replace(":", "")
+        for r in level_resutl_list.root
+    ]
+    return int("".join(level_text_list))
 
 
 status_name_dict = {
@@ -191,6 +225,7 @@ async def read_status_value_text(
 async def get_status(
     status_name_images: list[Image.Image],
     status_value_images: list[Image.Image],
+    level_image: Image.Image,
     ocr: OCR,
     logger: Logger,
 ) -> Status:
@@ -199,8 +234,17 @@ async def get_status(
         await read_status_name_text(image, ocr) for image in status_name_images
     ]
     status_type = adjast_status_name_list(status_name_list)
+    level = None
+    if (
+        status_type == "dom"
+        or status_type == "dom_no"
+        or status_type == "bred"
+        or status_type == "bred_no"
+    ):
+        level = await get_level(level_image, ocr)
+
     match status_type:
-        case "tb":
+        case "wild":
             return Status(
                 type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
@@ -211,8 +255,9 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
+                level=level,
             )
-        case "tbno":
+        case "wild_no":
             return Status(
                 type="wild",
                 h=await get_status_value(status_value_images[0], ocr),
@@ -223,8 +268,9 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[4], ocr),
                 t=await get_status_value(status_value_images[5], ocr),
                 i=None,
+                level=level,
             )
-        case "ta":
+        case "dom":
             return Status(
                 type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
@@ -235,8 +281,9 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=None,
+                level=level,
             )
-        case "tano":
+        case "dom_no":
             return Status(
                 type="dom",
                 h=await get_status_value(status_value_images[1], ocr),
@@ -247,8 +294,9 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
+                level=level,
             )
-        case "bl":
+        case "bred":
             return Status(
                 type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
@@ -259,8 +307,9 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[6], ocr),
                 t=await get_status_value(status_value_images[7], ocr),
                 i=await get_status_value_i(status_value_images[8], ocr),
+                level=level,
             )
-        case "blno":
+        case "bred_no":
             return Status(
                 type="bred",
                 h=await get_status_value(status_value_images[1], ocr),
@@ -271,16 +320,17 @@ async def get_status(
                 m=await get_status_value_m(status_value_images[5], ocr),
                 t=await get_status_value(status_value_images[6], ocr),
                 i=await get_status_value_i(status_value_images[7], ocr),
+                level=level,
             )
 
 
 allow_status_name_list_dict = {
-    "tb": ["h", "s", "o", "f", "w", "m", "t", "", ""],  # テイム前
-    "tbno": ["h", "s", "f", "w", "m", "t", "", "", ""],  # テイム前かつ酸素量なし
-    "ta": ["", "h", "s", "o", "f", "w", "m", "t", ""],  # テイム後
-    "tano": ["", "h", "s", "f", "w", "m", "t", "", ""],  # テイム後かつ酸素量なし
-    "bl": ["", "h", "s", "o", "f", "w", "m", "t", "i"],  # ブリ
-    "blno": ["", "h", "s", "f", "w", "m", "t", "i", ""],  # ブリかつ酸素量なし
+    "wild": ["h", "s", "o", "f", "w", "m", "t", "", ""],  # テイム前
+    "wild_no": ["h", "s", "f", "w", "m", "t", "", "", ""],  # テイム前かつ酸素量なし
+    "dom": ["", "h", "s", "o", "f", "w", "m", "t", ""],  # テイム後
+    "dom_no": ["", "h", "s", "f", "w", "m", "t", "", ""],  # テイム後かつ酸素量なし
+    "bred": ["", "h", "s", "o", "f", "w", "m", "t", "i"],  # ブリ
+    "bred_no": ["", "h", "s", "f", "w", "m", "t", "i", ""],  # ブリかつ酸素量なし
 }
 
 

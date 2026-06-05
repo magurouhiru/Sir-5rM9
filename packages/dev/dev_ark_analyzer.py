@@ -16,7 +16,7 @@ from PIL import Image
 
 sample_list = [
     {
-        "name": "sample 雪フクロウ (tb:テイム前) ",
+        "name": "sample 雪フクロウ",
         "path": "sample.png",
         "status": Status(
             type="wild",
@@ -28,10 +28,11 @@ sample_list = [
             m=1.9,
             t=5604.0,
             i=None,
+            level=None,
         ),
     },
     {
-        "name": "sample2 テリジノ (bl:ブリ) ",
+        "name": "sample2 テリジノ",
         "path": "sample2.png",
         "status": Status(
             type="bred",
@@ -43,10 +44,11 @@ sample_list = [
             m=6.366,
             t=11433.5,
             i=1.0,
+            level=208,
         ),
     },
     {
-        "name": "sample3 メガロドン (tano:テイム後かつ酸素量なし) ",
+        "name": "sample3 メガロドン",
         "path": "sample3.jpg",
         "status": Status(
             type="dom",
@@ -58,10 +60,11 @@ sample_list = [
             m=4.281,
             t=11504.5,
             i=None,
+            level=224,
         ),
     },
     {
-        "name": "sample4 ファイアーワイバーン (bl:ブリ) ",
+        "name": "sample4 ファイアーワイバーン",
         "path": "sample4.png",
         "status": Status(
             type="bred",
@@ -73,10 +76,11 @@ sample_list = [
             m=1.882,
             t=4597.0,
             i=1.0,
+            level=90,
         ),
     },
     {
-        "name": "sample5 カニ (tbno:テイム前かつ酸素量なし) ",
+        "name": "sample5 カニ",
         "path": "sample5.png",
         "status": Status(
             type="wild",
@@ -88,10 +92,11 @@ sample_list = [
             m=2.5,
             t=6360.0,
             i=None,
+            level=None,
         ),
     },
     {
-        "name": "sample6 メイグアナ (bl:ブリかつ酸素量なし(50%)) ",
+        "name": "sample6 メイグアナ(50%)",
         "path": "sample6.png",
         "status": Status(
             type="bred",
@@ -103,10 +108,11 @@ sample_list = [
             m=3.175,
             t=1306.5,
             i=0.5,
+            level=202,
         ),
     },
     {
-        "name": "sample7 TEKステゴサウルス (bl:ブリ) ",
+        "name": "sample7 TEKステゴサウルス",
         "path": "sample7.png",
         "status": Status(
             type="bred",
@@ -118,10 +124,11 @@ sample_list = [
             m=3.751,
             t=9276.5,
             i=1,
+            level=242,
         ),
     },
     {
-        "name": "sample8 アロサウルス (ta:テイム後) ",
+        "name": "sample8 アロサウルス",
         "path": "sample8.png",
         "status": Status(
             type="dom",
@@ -133,10 +140,11 @@ sample_list = [
             m=4.022,
             t=15280.5,
             i=None,
+            level=239,
         ),
     },
     {
-        "name": "sample9 ギガントラプトル (bl:ブリ) ",
+        "name": "sample9 ギガントラプトル",
         "path": "sample9.png",
         "status": Status(
             type="bred",
@@ -148,10 +156,11 @@ sample_list = [
             m=3.904,
             t=13091.5,
             i=0,
+            level=214,
         ),
     },
     {
-        "name": "sample10 カマキリ (bl:ブリ) ",
+        "name": "sample10 カマキリ",
         "path": "sample10.png",
         "status": Status(
             type="bred",
@@ -163,10 +172,11 @@ sample_list = [
             m=3.222,
             t=7048.1,
             i=1,
+            level=264,
         ),
     },
     {
-        "name": "sample11 カルカロドントサウルス (bl:ブリ) ",
+        "name": "sample11 カルカロドントサウルス",
         "path": "sample11.png",
         "status": Status(
             type="bred",
@@ -178,10 +188,11 @@ sample_list = [
             m=2.5,
             t=96624.0,
             i=1,
+            level=208,
         ),
     },
     {
-        "name": "sample12 TEKギガノトサウルス (bl:ブリ) ",
+        "name": "sample12 TEKギガノトサウルス",
         "path": "sample12.png",
         "status": Status(
             type="bred",
@@ -193,6 +204,7 @@ sample_list = [
             m=2.35,
             t=176800.0,
             i=0,
+            level=279,
         ),
     },
 ]
@@ -246,6 +258,8 @@ def compere_status(status1: Status, status2: Status) -> None | str:
         return f"i: {status1.i} != {status2.i}"
     if status1.type != status2.type:
         return f"type: {status1.type} != {status2.type}"
+    if status1.level != status2.level:
+        return f"level: {status1.level} != {status2.level}"
     return None
 
 
