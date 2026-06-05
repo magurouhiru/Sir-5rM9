@@ -171,8 +171,6 @@ async def get_level(image: Image.Image, ocr: OCR) -> int:
         r.text.replace("レ", "").replace("ベ", "").replace("ル", "").replace(":", "")
         for r in level_resutl_list.root
     ]
-    print(level_text_list)
-    print("".join(level_text_list))
     return int("".join(level_text_list))
 
 

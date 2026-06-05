@@ -60,7 +60,7 @@ sample_list = [
             m=4.281,
             t=11504.5,
             i=None,
-            level=None,
+            level=224,
         ),
     },
     {
@@ -140,7 +140,7 @@ sample_list = [
             m=4.022,
             t=15280.5,
             i=None,
-            level=None,
+            level=239,
         ),
     },
     {
