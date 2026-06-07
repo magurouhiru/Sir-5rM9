@@ -48,7 +48,7 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
                 "".join([
                     "https://magurouhiru.github.io/ASB-web/#/ASB-web/calc?",
                     f"&type={resp.status.type}",
-                    f"n={resp.n}",
+                    f"&n={resp.n}",
                     f"&h={resp.status.h}",
                     f"&s={resp.status.s}",
                     f"&o={resp.status.o}",
@@ -60,7 +60,7 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
                     f"&level={resp.status.level}"
                     if resp.status.level is not None
                     else "",
-                    f"&level={resp.status.withDom}"
+                    f"&withDom={resp.status.withDom}"
                     if resp.status.withDom is not None
                     else "",
                 ]),
