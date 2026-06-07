@@ -23,6 +23,7 @@ class Status:
     t: float
     i: float | None = None
     level: int | None = None
+    withDom: bool | None = None
 
 
 @dataclass
@@ -235,6 +236,7 @@ async def get_status(
     ]
     status_type = adjast_status_name_list(status_name_list)
     level = None
+    withDom = None
     if (
         status_type == "dom"
         or status_type == "dom_no"
@@ -242,6 +244,8 @@ async def get_status(
         or status_type == "bred_no"
     ):
         level = await get_level(level_image, ocr)
+        xp = await get_status_value(status_name_images[0], ocr)
+        withDom = xp == 10.0
 
     match status_type:
         case "wild":
@@ -256,6 +260,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
                 level=level,
+                withDom=withDom,
             )
         case "wild_no":
             return Status(
@@ -269,6 +274,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[5], ocr),
                 i=None,
                 level=level,
+                withDom=withDom,
             )
         case "dom":
             return Status(
@@ -282,6 +288,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[7], ocr),
                 i=None,
                 level=level,
+                withDom=withDom,
             )
         case "dom_no":
             return Status(
@@ -295,6 +302,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[6], ocr),
                 i=None,
                 level=level,
+                withDom=withDom,
             )
         case "bred":
             return Status(
@@ -308,6 +316,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[7], ocr),
                 i=await get_status_value_i(status_value_images[8], ocr),
                 level=level,
+                withDom=withDom,
             )
         case "bred_no":
             return Status(
@@ -321,6 +330,7 @@ async def get_status(
                 t=await get_status_value(status_value_images[6], ocr),
                 i=await get_status_value_i(status_value_images[7], ocr),
                 level=level,
+                withDom=withDom,
             )
 
 
