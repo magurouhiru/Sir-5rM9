@@ -245,7 +245,7 @@ async def get_status(
     ):
         level = await get_level(level_image, ocr)
         xp = await get_status_value(status_name_images[0], ocr)
-        withDom = xp == 10.0
+        withDom = xp != 10.0
 
     match status_type:
         case "wild":
