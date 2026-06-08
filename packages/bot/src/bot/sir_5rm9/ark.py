@@ -45,25 +45,27 @@ def setup_ark(bot: commands.Bot, ocr: OCR, logger: Logger):
         try:
             resp = await analyze_main(await image_attachments[0].read(), ocr, logger)
             await message.channel.send(
-                "".join([
-                    "https://magurouhiru.github.io/ASB-web/#/ASB-web/calc?",
-                    f"&type={resp.status.type}",
-                    f"&n={resp.n}",
-                    f"&h={resp.status.h}",
-                    f"&s={resp.status.s}",
-                    f"&o={resp.status.o}",
-                    f"&f={resp.status.f}",
-                    f"&w={resp.status.w}",
-                    f"&m={resp.status.m}",
-                    f"&t={resp.status.t}",
-                    f"&i={resp.status.i}" if resp.status.i is not None else "",
-                    f"&level={resp.status.level}"
-                    if resp.status.level is not None
-                    else "",
-                    f"&withDom={resp.status.withDom}"
-                    if resp.status.withDom is not None
-                    else "",
-                ]),
+                "".join(
+                    [
+                        "https://magurouhiru.github.io/ASB-web/#/ASB-web/calc?",
+                        f"&type={resp.status.type}",
+                        f"&n={resp.n}",
+                        f"&h={resp.status.h}",
+                        f"&s={resp.status.s}",
+                        f"&o={resp.status.o}",
+                        f"&f={resp.status.f}",
+                        f"&w={resp.status.w}",
+                        f"&m={resp.status.m}",
+                        f"&t={resp.status.t}",
+                        f"&i={resp.status.i}" if resp.status.i is not None else "",
+                        f"&level={resp.status.level}"
+                        if resp.status.level is not None
+                        else "",
+                        f"&withDom={resp.status.withDom}"
+                        if resp.status.withDom is not None
+                        else "",
+                    ]
+                ),
                 silent=True,
                 mention_author=True,
             )
