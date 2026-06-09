@@ -29,6 +29,7 @@ sample_list = [
             t=5604.0,
             i=None,
             level=None,
+            withDom=None,
         ),
     },
     {
@@ -45,6 +46,7 @@ sample_list = [
             t=11433.5,
             i=1.0,
             level=208,
+            withDom=True,
         ),
     },
     {
@@ -61,6 +63,7 @@ sample_list = [
             t=11504.5,
             i=None,
             level=224,
+            withDom=False,
         ),
     },
     {
@@ -77,6 +80,7 @@ sample_list = [
             t=4597.0,
             i=1.0,
             level=90,
+            withDom=False,
         ),
     },
     {
@@ -93,6 +97,7 @@ sample_list = [
             t=6360.0,
             i=None,
             level=None,
+            withDom=None,
         ),
     },
     {
@@ -109,6 +114,7 @@ sample_list = [
             t=1306.5,
             i=0.5,
             level=202,
+            withDom=False,
         ),
     },
     {
@@ -125,6 +131,7 @@ sample_list = [
             t=9276.5,
             i=1,
             level=242,
+            withDom=False,
         ),
     },
     {
@@ -141,6 +148,7 @@ sample_list = [
             t=15280.5,
             i=None,
             level=239,
+            withDom=False,
         ),
     },
     {
@@ -157,6 +165,7 @@ sample_list = [
             t=13091.5,
             i=0,
             level=214,
+            withDom=False,
         ),
     },
     {
@@ -173,6 +182,7 @@ sample_list = [
             t=7048.1,
             i=1,
             level=264,
+            withDom=False,
         ),
     },
     {
@@ -189,6 +199,7 @@ sample_list = [
             t=96624.0,
             i=1,
             level=208,
+            withDom=False,
         ),
     },
     {
@@ -205,8 +216,26 @@ sample_list = [
             t=176800.0,
             i=0,
             level=279,
+            withDom=False,
         ),
     },
+    # {
+    #     "name": "sample13 カマキリ",
+    #     "path": "sample13.png",
+    #     "status": Status(
+    #         type="bred",
+    #         h=2365.1,
+    #         s=975.0,
+    #         o=720.0,
+    #         f=4680.0,
+    #         w=409.2,
+    #         m=2.699,
+    #         t=5915.5,
+    #         i=0,
+    #         level=266,
+    #         withDom=False,
+    #     ),
+    # },
 ]
 
 
