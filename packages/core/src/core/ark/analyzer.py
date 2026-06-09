@@ -389,7 +389,10 @@ async def get_status_value(image: Image.Image, ocr: OCR) -> float:
     buf2 = buf1.replace("/", "")
     buf3 = add_dot_if_needed(buf2)
 
-    return round(float(buf3), 1)
+    try:
+        return round(float(buf3), 1)
+    except ValueError:
+        return 0.0
 
 
 async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
@@ -414,7 +417,10 @@ async def get_status_value_m(image: Image.Image, ocr: OCR) -> float:
     buf2 = buf1.replace("%", "")
     buf3 = add_dot_if_needed(buf2)
 
-    return round(float(buf3) / 100.0, 3)
+    try:
+        return round(float(buf3) / 100.0, 3)
+    except ValueError:
+        return 0.0
 
 
 async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
@@ -441,7 +447,10 @@ async def get_status_value_i(image: Image.Image, ocr: OCR) -> float:
     if buf3 > 199:
         buf3 = buf3 // 10  # なんか%が9とかになるっぽいので、10で割る
 
-    return min(100, int(buf3)) / 100.0  # 100%を1.0として扱う
+    try:
+        return min(100, int(buf3)) / 100.0  # 100%を1.0として扱う
+    except ValueError:
+        return 0.0
 
 
 def add_dot_if_needed(value: str) -> str:

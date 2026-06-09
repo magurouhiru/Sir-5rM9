@@ -236,6 +236,23 @@ sample_list = [
     #         withDom=False,
     #     ),
     # },
+    {
+        "name": "sample14 デスモダス",
+        "path": "sample14.jpg",
+        "status": Status(
+            type="dom",
+            h=2148.3,
+            s=1300.0,
+            o=825.0,
+            f=9014.2,
+            w=630.0,
+            m=3.257,
+            t=6471.5,
+            i=None,
+            level=224,
+            withDom=False,
+        ),
+    },
 ]
 
 
