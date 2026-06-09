@@ -240,7 +240,7 @@ sample_list = [
         "name": "sample14 デスモダス",
         "path": "sample14.jpg",
         "status": Status(
-            type="bred",
+            type="dom",
             h=2148.3,
             s=1300.0,
             o=825.0,
