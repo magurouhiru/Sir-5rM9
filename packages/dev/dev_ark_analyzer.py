@@ -238,7 +238,7 @@ sample_list = [
     # },
     {
         "name": "sample14 デスモダス",
-        "path": "sample14.png",
+        "path": "sample14.jpg",
         "status": Status(
             type="bred",
             h=2148.3,
